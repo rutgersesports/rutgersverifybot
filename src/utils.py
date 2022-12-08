@@ -1,2 +1,2 @@
-SMTP_SERVER = "smtp.outlook.com"
-PORT = 587
+SMTP_SERVER: str = "smtp.outlook.com"
+PORT: int = 587
