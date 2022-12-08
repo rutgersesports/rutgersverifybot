@@ -15,3 +15,4 @@ Rules are put in place to prevent confusion to future programmers that will even
 1. Use the [black](https://github.com/psf/black) linter
 2. Follow [Python's naming conventions](https://peps.python.org/pep-0008/)
 3. Create issues in the GitHub repository before creating a pull request to prevent work efforts from being lost
+4. Try to specify variable types in your Python code
