@@ -15,11 +15,8 @@ class Bot(commands.Bot):
                 await bot.load_extension(extension)
                 print(f"Loaded {extension}")
             except Exception as e:
-                print(
-                    "Failed to load extension {}\n{}".format(
-                        extension, "{}: {}".format(type(e).__name__, e)
-                    )
-                )
+                file_name = type(e).__name__
+                print(f"Failed to load extension {file_name}\n{e}")
 
 
 intents: discord.Intents = discord.Intents.default()
