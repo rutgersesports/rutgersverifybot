@@ -73,7 +73,7 @@ Here is your verification code: {code}
             c: MemberQueue = self.codes[msg_content]
             if author_id != c.discord_id:
                 return
-            
+
             guild_json_file_read = open("data/guilds.json", "r")
             data = json.load(guild_json_file_read)
             guild: discord.Guild = self.codes[msg_content].guild
