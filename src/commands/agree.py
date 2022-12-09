@@ -32,6 +32,9 @@ class AgreeCog(commands.Cog):
             await ctx.channel.send("You are already verified..")
             return
 
+        if ctx.author.id in self.bot.awaiting_email:
+            self.awaiting_email.pop(str(ctx.author.id))
+
         self.bot.awaiting_email[str(ctx.author.id)] = ctx.guild
         await ctx.author.create_dm()
         await ctx.author.dm_channel.send(embed=ask_email())
