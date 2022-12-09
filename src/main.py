@@ -65,7 +65,7 @@ Here is your verification code: {code}
 
                 await message.author.dm_channel.send(embed=email_sent(user_email))
             except Exception as e:
-                print(e)
+                await message.author.dm_channel.send("Invalid email. Try again")
             finally:
                 self.server.quit()
 
