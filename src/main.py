@@ -74,7 +74,7 @@ Here is your verification code: {code}
             if author_id == c.discord_id:
                 guild_json_file_read = open("data/guilds.json", "r")
                 data = json.load(guild_json_file_read)
-                guild: discord.Guild = self.codes[msg_content].guild_id
+                guild: discord.Guild = self.codes[msg_content].guild
                 verified_role_id = data[str(guild.id)]["verified_role"]
                 verified_role = discord.utils.get(guild.roles, id=verified_role_id)
                 guild_member: discord.Member = guild.get_member(author_id)
