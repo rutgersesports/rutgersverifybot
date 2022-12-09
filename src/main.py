@@ -18,7 +18,6 @@ class Bot(commands.Bot):
         self.codes: Dict[str, MemberQueue] = {}
 
         startup_extensions: List[str] = [
-            "commands.verify",
             "commands.register",
             "commands.agree",
         ]
