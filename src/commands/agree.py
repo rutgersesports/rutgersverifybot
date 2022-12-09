@@ -14,9 +14,16 @@ class AgreeCog(commands.Cog):
     async def agree(self, ctx: Context):
         guild_json_file_read = open("data/guilds.json", "r")
         data = json.load(guild_json_file_read)
+
+        if str(ctx.guild.id) not in data or (
+            str(ctx.guild.id) in data and "verified_role" not in data[str(ctx.guild.id)]
+        ):
+            await ctx.channel.send("Agree channel does not exist.")
+            return
+
         role_id: int = data[str(ctx.guild.id)]["verified_role"]
-        print(role_id)
         role: discord.Role = discord.utils.get(ctx.guild.roles, id=role_id)
+
         if data[str(ctx.guild.id)]["readme_channel_id"] != ctx.channel.id:
             await ctx.channel.send("Not the correct channel.")
             return
