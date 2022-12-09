@@ -8,6 +8,6 @@ PORT: int = 587
 def create_verification_code() -> str:
     out = ""
     for x in range(EMAIL_CODE_LENGTH):
-        out += random.randint(0, 9)
+        out += str(random.randint(0, 9))
 
     return out
