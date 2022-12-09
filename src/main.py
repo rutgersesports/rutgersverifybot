@@ -71,17 +71,19 @@ Here is your verification code: {code}
 
         elif is_channel_dm and msg_content in self.codes:
             c: MemberQueue = self.codes[msg_content]
-            if author_id == c.discord_id:
-                guild_json_file_read = open("data/guilds.json", "r")
-                data = json.load(guild_json_file_read)
-                guild: discord.Guild = self.codes[msg_content].guild
-                verified_role_id = data[str(guild.id)]["verified_role"]
-                verified_role = discord.utils.get(guild.roles, id=verified_role_id)
-                guild_member: discord.Member = guild.get_member(author_id)
-                await guild_member.add_roles(verified_role)
-                self.codes.pop(msg_content)
+            if author_id != c.discord_id:
+                return
+            
+            guild_json_file_read = open("data/guilds.json", "r")
+            data = json.load(guild_json_file_read)
+            guild: discord.Guild = self.codes[msg_content].guild
+            verified_role_id = data[str(guild.id)]["verified_role"]
+            verified_role = discord.utils.get(guild.roles, id=verified_role_id)
+            guild_member: discord.Member = guild.get_member(author_id)
+            await guild_member.add_roles(verified_role)
+            self.codes.pop(msg_content)
 
-                await channel.send(embed=verified_embed())
+            await channel.send(embed=verified_embed())
 
     @tasks.loop(seconds=1.0)
     async def check_queue(self) -> None:
