@@ -6,7 +6,10 @@ This is a Discord bot made for the Rutgers Esports server that supports email ve
 
 ## Dependencies
 ```
-discord >= 2.1.0
+hikari>=2.0.0.dev113
+Pyrebase4>=4.6.0
+python-dotenv>=0.21.0
+
 ```
 
 ## Contributing
