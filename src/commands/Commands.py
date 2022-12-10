@@ -6,6 +6,7 @@ import dotenv
 import hikari
 
 from src.database import Firebase as db
+
 dotenv.load_dotenv()
 bot = hikari.GatewayBot(token=os.getenv("token"), intents=hikari.Intents.ALL)
 
@@ -103,7 +104,10 @@ async def retryVerification(event: hikari.DMMessageCreateEvent):
     if not event.is_human:
         return None
     if event.content.lower() == "retry":
-        db.db.child("users").child(f"{event.author_id}").child("ver_code").set(random.randrange(100000, 999999))
+        db.db.child("users").child(f"{event.author_id}").child("ver_code").set(
+            random.randrange(100000, 999999)
+        )
         await verification(event.author)
+
 
 bot.run()
