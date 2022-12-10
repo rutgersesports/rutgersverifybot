@@ -1,30 +1,31 @@
-import os
+from os import getenv
 import random
 
+import dotenv
 import hikari
 import pyrebase
-import dotenv
 from email.message import EmailMessage
 import ssl
 import smtplib
 
 dotenv.load_dotenv()
 config = {
-    "apiKey": os.getenv("apiKey"),
-    "authDomain": os.getenv("authDomain"),
-    "databaseURL": os.getenv("databaseURL"),
-    "projectId": os.getenv("projectId"),
-    "storageBucket": os.getenv("storageBucket"),
-    "messagingSenderId": os.getenv("messagingSenderId"),
-    "appId": os.getenv("appId"),
-    "measurementId": os.getenv("measurementId"),
-    "serviceAccount": os.getenv("serviceAccount"),
+    "apiKey": getenv("apiKey"),
+    "authDomain": getenv("authDomain"),
+    "databaseURL": getenv("databaseURL"),
+    "projectId": getenv("projectId"),
+    "storageBucket": getenv("storageBucket"),
+    "messagingSenderId": getenv("messagingSenderId"),
+    "appId": getenv("appId"),
+    "measurementId": getenv("measurementId"),
+    "serviceAccount": getenv("serviceAccount"),
 }
+
 
 db = pyrebase.initialize_app(config).database()
 
 
-async def checkEmptyOrMia(author_id: int, join: bool) -> bool:
+async def checkEmptyOrMia(author_id: int) -> bool:
     if (
         db.child("users").get().val() is None
         or f"{author_id}" not in db.child("users").get().val()
@@ -54,8 +55,8 @@ def checkVercode(code: int, id: int) -> bool:
 async def sendEmail(event: hikari.DMMessageCreateEvent):
 
     # Declare var, FIX NETID/ver_code input parsing
-    email_sender = os.getenv("email")
-    email_password = os.getenv("emailpass")
+    email_sender = getenv("email")
+    email_password = getenv("emailpass")
     email_receiver = event.content + "@scarletmail.rutgers.edu"
     ver_code = (
         db.child("users").child(f"{event.author_id}").child("ver_code").get().val()
@@ -90,7 +91,7 @@ async def sendEmail(event: hikari.DMMessageCreateEvent):
 async def place_msg(event: hikari.GuildMessageCreateEvent):
     if not event.is_human:
         return
-    await checkEmptyOrMia(event.author_id, False)
+    await checkEmptyOrMia(event.author_id)
     msg_count = (
         db.child("users").child(f"{event.author_id}").child("msg_count").get().val()
     )
