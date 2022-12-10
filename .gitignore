@@ -153,3 +153,5 @@ cython_debug/
 .DS_Store
 .idea
 .json
+*.json
+src/environ/pythonbotdb-cad4c-firebase-adminsdk-ulnp0-384fb19d3f.json
