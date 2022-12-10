@@ -1,9 +1,6 @@
-import os
-import dotenv
-import hikari
+from dotenv import load_dotenv
+from commands.Commands import bot
 
-dotenv.load_dotenv()
-bot = hikari.GatewayBot(token=os.getenv("token"), intents=hikari.Intents.ALL)
 
 # @bot.listen() async def botJoinServer(event: hikari.GuildJoinEvent) -> None: overwrite =
 # hikari.PermissionOverwrite( id=event.guild_id, type=hikari.PermissionOverwriteType.MEMBER,
@@ -13,4 +10,9 @@ bot = hikari.GatewayBot(token=os.getenv("token"), intents=hikari.Intents.ALL)
 # channel.id}') await channel.send("src")
 
 
-bot.run()
+def main():
+    bot.run()
+
+
+if __name__ == "__main__":
+    main()

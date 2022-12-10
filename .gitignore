@@ -137,7 +137,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-.json
 
 # pytype static type analyzer
 .pytype/
@@ -152,3 +151,7 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 .DS_Store
+.idea
+.json
+*.json
+src/environ/pythonbotdb-cad4c-firebase-adminsdk-ulnp0-384fb19d3f.json
