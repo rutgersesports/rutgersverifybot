@@ -64,9 +64,19 @@ async def setAgreementRoles(event: hikari.GuildMessageCreateEvent):
         roleMentions = [
             event.get_guild().get_role(int(id))
             for id in event.message.role_mention_ids
-            if db.child("guilds").child(f"{event.guild_id}").child("NetIDRoles").get().val() is None
+            if db.child("guilds")
+            .child(f"{event.guild_id}")
+            .child("NetIDRoles")
+            .get()
+            .val()
+            is None
             or int(id)
-            not in db.child("guilds").child(f"{event.guild_id}").child("NetIDRoles").get().val().values()
+            not in db.child("guilds")
+            .child(f"{event.guild_id}")
+            .child("NetIDRoles")
+            .get()
+            .val()
+            .values()
         ]
         for v in roleMentions:
             db.child("guilds").child(f"{event.guild_id}").child("NetIDRoles").push(v.id)
