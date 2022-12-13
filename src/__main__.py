@@ -1,4 +1,3 @@
-from dotenv import load_dotenv
 from commands.Commands import bot
 
 

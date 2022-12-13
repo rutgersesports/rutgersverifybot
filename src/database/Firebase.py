@@ -1,5 +1,4 @@
 from os import getenv
-import random
 
 import dotenv
 import hikari
@@ -21,7 +20,6 @@ config = {
     "serviceAccount": getenv("serviceAccount"),
 }
 
-
 db = pyrebase.initialize_app(config).database()
 
 
@@ -34,7 +32,6 @@ async def checkEmptyOrMia(author_id: int) -> bool:
             {
                 "msg_count": 0,
                 "verified": False,
-                "ver_code": random.randrange(100000, 999999),
                 "netID": "unknown",
             }
         )
@@ -53,7 +50,6 @@ def checkVercode(code: int, id: int) -> bool:
 
 
 async def sendEmail(event: hikari.DMMessageCreateEvent):
-
     # Declare var, FIX NETID/ver_code input parsing
     email_sender = getenv("email")
     email_password = getenv("emailpass")
@@ -82,20 +78,44 @@ async def sendEmail(event: hikari.DMMessageCreateEvent):
 
     # Send email using SSL
     with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as smtp:
-
         smtp.login(email_sender, email_password)
 
         smtp.sendmail(email_sender, email_receiver, em.as_string())
 
 
-async def place_msg(event: hikari.GuildMessageCreateEvent):
-    if not event.is_human:
-        return
-    await checkEmptyOrMia(event.author_id)
-    msg_count = (
-        db.child("users").child(f"{event.author_id}").child("msg_count").get().val()
-    )
-    db.child("users").child(f"{event.author_id}").update({"msg_count": msg_count + 1})
-    db.child("users").child(f"{event.author_id}").child("msgs").child(
-        f"key{msg_count}"
-    ).set(event.content)
+# async def place_msg(event: hikari.GuildMessageCreateEvent):
+#     if not event.is_human:
+#         return
+#     await checkEmptyOrMia(event.author_id)
+#     # try:
+#     msg_count = (
+#         db.child("users").child(f"{event.author_id}").child("msg_count").get().val()
+#     )
+#     db.child("users").child(f"{event.author_id}").update({"msg_count": msg_count + 1})
+#     msg_count += 1
+
+# BUGGED AND CANNOT FIX, PYREBASE ISSUE
+# except TypeError:
+#     db.update({"msg_count": 1})
+#     # db.update({"msg_count": 0})
+#     msg_count = (
+#         db.child("users").child(f"{event.author_id}").child("msg_count").get().val()
+#     )
+# db.child("users").child(f"{event.author_id}").child("msgs").child(
+#     f'key{msg_count}').set(event.content)
+
+
+async def getPrefix(guildID: int) -> str:
+    try:
+        prefix = (
+            db.child("guilds").child(f"{guildID}").child("prefix").get().val().values()
+        )
+    except AttributeError:
+        db.child("guilds").child(f"{guildID}").update({"prefix": "!"})
+        return "!"
+    else:
+        return prefix
+
+
+def getAgreementRoles(guild_id: int):
+    return db.child("guilds").child(f"{guild_id}").child("agreementRoles").get()
