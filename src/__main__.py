@@ -1,5 +1,4 @@
-from commands.Commands import bot
-
+import bot
 
 # @bot.listen() async def botJoinServer(event: hikari.GuildJoinEvent) -> None: overwrite =
 # hikari.PermissionOverwrite( id=event.guild_id, type=hikari.PermissionOverwriteType.MEMBER,
