@@ -1,13 +1,11 @@
 from os import getenv
 
-import dotenv
 import hikari
 import pyrebase
 from email.message import EmailMessage
 import ssl
 import smtplib
 
-dotenv.load_dotenv()
 config = {
     "apiKey": getenv("apiKey"),
     "authDomain": getenv("authDomain"),
@@ -118,4 +116,4 @@ async def getPrefix(guildID: int) -> str:
 
 
 def getAgreementRoles(guild_id: int):
-    return db.child("guilds").child(f"{guild_id}").child("agreementRoles").get()
+    return db.child("guilds").child(f"{guild_id}").child("NetIDRoles").get()
