@@ -76,7 +76,9 @@ async def setAgreementRoles(event: hikari.GuildMessageCreateEvent):
             .values()
         ]
         for v in roleMentions:
-            db.child("guilds").child(f"{event.guild_id}").child("NetIDRoles").child(f'{v.name}').set(v.id)
+            db.child("guilds").child(f"{event.guild_id}").child("NetIDRoles").child(
+                f"{v.name}"
+            ).set(v.id)
         if not roleMentions:
             await event.get_channel().send(
                 "All mentioned roles are already NetID roles"

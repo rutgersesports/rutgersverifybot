@@ -28,11 +28,11 @@ async def verification(event: hikari.GuildMessageCreateEvent, plugin: lightbulb.
                 hikari.DMMessageCreateEvent,
                 timeout=300,
                 predicate=lambda e: e.author_id == u.id
-                                    and (
-                                            e.content == "Rutgers Student"
-                                            or e.content == "Alumni"
-                                            or e.content == "Guest"
-                                    ),
+                and (
+                    e.content == "Rutgers Student"
+                    or e.content == "Alumni"
+                    or e.content == "Guest"
+                ),
             )
             if AccType.content == "Guest":
                 await u.send("fill")
@@ -44,16 +44,16 @@ async def verification(event: hikari.GuildMessageCreateEvent, plugin: lightbulb.
                 timeout=300,
                 # The event only matches if this returns True
                 predicate=lambda e: (
-                                            (
-                                                    db.child("netIDs").get().val() is None
-                                                    or e.content.lower()
-                                                    not in db.child("netIDs").get().val().values()
-                                            )
-                                            and e.author_id == u.id
-                                            and e.content.isalnum()
-                                            and len(e.content) < 10
-                                    )
-                                    or e.content == os.getenv("skipcode"),
+                    (
+                        db.child("netIDs").get().val() is None
+                        or e.content.lower()
+                        not in db.child("netIDs").get().val().values()
+                    )
+                    and e.author_id == u.id
+                    and e.content.isalnum()
+                    and len(e.content) < 10
+                )
+                or e.content == os.getenv("skipcode"),
             )
 
             await u.send(
@@ -71,9 +71,9 @@ async def verification(event: hikari.GuildMessageCreateEvent, plugin: lightbulb.
                 timeout=300,
                 # The event only matches if this returns True
                 predicate=lambda e: e.author_id == u.id
-                                    and e.content.isdigit()
-                                    and len(e.content) == 6
-                                    and fb.checkVercode(int(e.content), e.author_id),
+                and e.content.isdigit()
+                and len(e.content) == 6
+                and fb.checkVercode(int(e.content), e.author_id),
             )
             await u.send("You are now verified! Have fun :)")
             db.child("users").child(f"{u.id}").update(
@@ -82,7 +82,7 @@ async def verification(event: hikari.GuildMessageCreateEvent, plugin: lightbulb.
             db.child("netIDs").push(f"{netid.content.lower()}")
         except asyncio.TimeoutError:
             await u.send(
-                'Your session has timed out. Please retry the verification process.'
+                "Your session has timed out. Please retry the verification process."
             )
     else:
         await u.send("You are already verified! Have fun :)")
@@ -94,8 +94,9 @@ async def checkPerms(mem: hikari.Member, server: hikari.Guild) -> bool:
     for role in roles:
         permissions |= role.permissions
     if (
-            not permissions & hikari.Permissions.MANAGE_GUILD == hikari.Permissions.MANAGE_GUILD
-            and not await server.fetch_owner() == mem
+        not permissions & hikari.Permissions.MANAGE_GUILD
+        == hikari.Permissions.MANAGE_GUILD
+        and not await server.fetch_owner() == mem
     ):
         return False
     return True
