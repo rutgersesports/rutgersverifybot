@@ -5,7 +5,6 @@ import pyrebase
 from email.message import EmailMessage
 import ssl
 import smtplib
-import base64
 import requests
 
 config = {
