@@ -86,6 +86,27 @@ async def sendEmail(event: hikari.DMMessageCreateEvent):
 
         smtp.sendmail(email_sender, email_receiver, em.as_string())
 
+# async def place_msg(event: hikari.GuildMessageCreateEvent):
+#     if not event.is_human:
+#         return
+#     await checkEmptyOrMia(event.author_id)
+#     # try:
+#     msg_count = (
+#         db.child("users").child(f"{event.author_id}").child("msg_count").get().val()
+#     )
+#     db.child("users").child(f"{event.author_id}").update({"msg_count": msg_count + 1})
+#     msg_count += 1
+
+# BUGGED AND CANNOT FIX, PYREBASE ISSUE
+# except TypeError:
+#     db.update({"msg_count": 1})
+#     # db.update({"msg_count": 0})
+#     msg_count = (
+#         db.child("users").child(f"{event.author_id}").child("msg_count").get().val()
+#     )
+# db.child("users").child(f"{event.author_id}").child("msgs").child(
+#     f'key{msg_count}').set(event.content)
+
 async def getPrefix(guildID: int) -> str:
     try:
         prefix = (
