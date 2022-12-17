@@ -18,6 +18,6 @@ def run() -> None:
         import uvloop
 
         uvloop.install()
-    bot.load_extensions("commands.PrefixCommands", "commands.SlashCommands")
+    bot.load_extensions("commands.slash_commands")  # "commands.prefix_commands",
     miru.install(bot)
     bot.run()
