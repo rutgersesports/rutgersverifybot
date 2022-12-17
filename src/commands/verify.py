@@ -142,7 +142,9 @@ class SecondModal(miru.Modal):
                 components=[],
             )
             fb.db.child("users").child(ctx.user.id).child("verification").set("netid")
-            netid = fb.db.child("users").child(ctx.user.id).child("maybe_netid").get().val()
+            netid = (
+                fb.db.child("users").child(ctx.user.id).child("maybe_netid").get().val()
+            )
             fb.db.child("users").child(ctx.user.id).child("netid").set(netid)
             fb.db.child("users").child(ctx.user.id).child("maybe_netid").remove()
             fb.db.child("verified_netids").push(netid)
