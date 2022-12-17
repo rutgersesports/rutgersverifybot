@@ -22,7 +22,7 @@ def run() -> None:
     miru.install(bot)
     bot.run(
         activity=hikari.Activity(
-            name="Just chilling around (⌐▨_▨)",
-            type=hikari.ActivityType.WATCHING,
+            name="the air guitar championship",
+            type=hikari.ActivityType.COMPETING,
         ),
     )
