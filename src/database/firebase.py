@@ -59,7 +59,7 @@ async def send_email(netid: str, author_id: int) -> None:
     ver_code = random.randrange(100000, 999999)
     db.child("users").child(f"{author_id}").child("ver_code").set(ver_code)
 
-    subject = "Your CoolCat Verification"
+    subject = "Your CoolCat verification code"
 
     # Email formatting, em is the object
     em = EmailMessage()
