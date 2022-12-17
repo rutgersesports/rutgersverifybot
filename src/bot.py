@@ -20,4 +20,8 @@ def run() -> None:
         uvloop.install()
     bot.load_extensions("commands.slash_commands")  # "commands.prefix_commands",
     miru.install(bot)
-    bot.run()
+    bot.run(
+        activity=hikari.Activity(
+            name="Just chilling around (⌐▨_▨)",
+            type=hikari.ActivityType.WATCHING,
+        ),)
