@@ -142,6 +142,12 @@ class SecondModal(miru.Modal):
                 components=[],
             )
             fb.db.child("users").child(ctx.user.id).child("verification").set("netid")
+            netid = (
+                fb.db.child("users").child(ctx.user.id).child("maybe_netid").get().val()
+            )
+            fb.db.child("users").child(ctx.user.id).child("netid").set(netid)
+            fb.db.child("users").child(ctx.user.id).child("maybe_netid").remove()
+            fb.db.child("verified_netids").push(netid)
             roles_to_del = set(
                 fb.db.child("guilds")
                 .child(f"{ctx.guild_id}")

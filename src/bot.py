@@ -24,4 +24,5 @@ def run() -> None:
         activity=hikari.Activity(
             name="Just chilling around (⌐▨_▨)",
             type=hikari.ActivityType.WATCHING,
-        ),)
+        ),
+    )
