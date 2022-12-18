@@ -24,31 +24,6 @@ config = {
 db = pyrebase.initialize_app(config).database()
 
 
-async def check_empty_or_mia(author_id: int) -> bool:
-    if (
-        user_list := db.child("users").get().val()
-    ) is None or f"{author_id}" not in user_list:
-        db.child("users").child(f"{author_id}").set(
-            {
-                "msg_count": 0,
-                "verified": False,
-                "netID": "unknown",
-            }
-        )
-        return False
-    return True
-
-
-# async def email() -> bool:
-
-
-def check_vercode(code: int, user_id: int) -> bool:
-    if db.child("users").child(f"{user_id}").child("ver_code").get().val() == code:
-        db.child("users").child(f"{user_id}").update({"verified": True})
-        return True
-    return False
-
-
 async def send_email(netid: str, author_id: int) -> None:
     # Declare var, FIX NETID/ver_code input parsing
     email_sender = getenv("email")
@@ -85,18 +60,6 @@ async def send_email(netid: str, author_id: int) -> None:
         smtp.login(email_sender, email_password)
 
         smtp.sendmail(email_sender, email_receiver, em.as_string())
-
-
-# async def get_prefix(guildID: int) -> str:
-#     try:
-#         prefix = (
-#             db.child("guilds").child(f"{guildID}").child("prefix").get().val().values()
-#         )
-#     except AttributeError:
-#         db.child("guilds").child(f"{guildID}").update({"prefix": "!"})
-#         return "!"
-#     else:
-#         return prefix
 
 
 async def is_agreement_channel(ctx: lightbulb.Context) -> bool:
