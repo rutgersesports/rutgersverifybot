@@ -1,6 +1,6 @@
 import hikari
 import miru
-import src.database.firebase as fb
+from src.database import firebase as fb
 
 
 class DeleteMenu(miru.Select):
