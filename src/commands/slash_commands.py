@@ -100,7 +100,9 @@ async def set_moderation_channel(ctx: lightbulb.SlashContext) -> None:
 )
 @lightbulb.implements(lightbulb.SlashCommand)
 async def set_netid_roles(ctx: lightbulb.SlashContext) -> None:
-    if (roles := db.child("guilds").child(ctx.guild_id).child("all_roles").get().val()) is None:
+    if (
+        roles := db.child("guilds").child(ctx.guild_id).child("all_roles").get().val()
+    ) is None:
         roles = []
     else:
         roles = roles.values()
@@ -156,7 +158,9 @@ async def set_netid_roles(ctx: lightbulb.SlashContext) -> None:
 )
 @lightbulb.implements(lightbulb.SlashCommand)
 async def set_guest_roles(ctx: lightbulb.SlashContext) -> None:
-    if (roles := db.child("guilds").child(ctx.guild_id).child("all_roles").get().val()) is None:
+    if (
+        roles := db.child("guilds").child(ctx.guild_id).child("all_roles").get().val()
+    ) is None:
         roles = []
     else:
         roles = roles.values()
@@ -207,7 +211,7 @@ async def agree(ctx: lightbulb.SlashContext) -> None:
         SelectMenu(
             options=[miru.SelectOption(label=k) for k in all_roles_list.keys()][::-1],
             netid_roles=netid_roles,
-            all_roles_list=all_roles_list
+            all_roles_list=all_roles_list,
         )
     )
     message = await ctx.respond(

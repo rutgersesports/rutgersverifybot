@@ -48,7 +48,9 @@ class SelectMenu(miru.Select):
             final_roles.append(role_to_add)
             await ctx.member.edit(roles=final_roles)
             self.view.stop()
-        elif (netid := fb.db.child('users').child(ctx.user.id).child('netid').get().val()) is not None:
+        elif (
+            netid := fb.db.child("users").child(ctx.user.id).child("netid").get().val()
+        ) is not None:
             await add_netid_role(ctx, self.values[0], netid, self.all_roles_list)
             self.view.stop()
         else:
@@ -69,7 +71,11 @@ class ModalView(miru.View):
 
     @miru.button(label="Click me!", style=hikari.ButtonStyle.PRIMARY)
     async def modal_button(self, _: miru.Button, ctx: miru.ViewContext) -> None:
-        modal = FirstModal(title="NetID verification:", role=self.role, all_roles_list=self.all_roles_list)
+        modal = FirstModal(
+            title="NetID verification:",
+            role=self.role,
+            all_roles_list=self.all_roles_list,
+        )
         await ctx.respond_with_modal(modal)
 
 
@@ -89,7 +95,9 @@ class FirstModal(miru.Modal):
             )
             self.stop()
             return
-        view = VercodeView(role=self.role, netid=self.netid.value, all_roles_list=self.all_roles_list)
+        view = VercodeView(
+            role=self.role, netid=self.netid.value, all_roles_list=self.all_roles_list
+        )
         message = await ctx.edit_response(
             "Please check your email for the verification code!", components=view
         )
@@ -106,7 +114,12 @@ class VercodeView(miru.View):
 
     @miru.button(label="Click me!", style=hikari.ButtonStyle.PRIMARY)
     async def modal_button(self, _: miru.Button, ctx: miru.ViewContext) -> None:
-        modal = SecondModal(title="Verification code:", role=self.role, netid=self.netid, all_roles_list=self.all_roles_list)
+        modal = SecondModal(
+            title="Verification code:",
+            role=self.role,
+            netid=self.netid,
+            all_roles_list=self.all_roles_list,
+        )
         await ctx.respond_with_modal(modal)
 
 
@@ -127,9 +140,9 @@ class SecondModal(miru.Modal):
     async def callback(self, ctx: miru.ModalContext) -> None:
         if not self.ver_code.value.isdigit():
             await ctx.edit_response("Please make sure you're only inputting digits!")
-        elif fb.db.child("users").child(ctx.user.id).child("ver_code").get().val() == int(
-            self.ver_code.value
-        ):
+        elif fb.db.child("users").child(ctx.user.id).child(
+            "ver_code"
+        ).get().val() == int(self.ver_code.value):
             await add_netid_role(ctx, self.role, self.netid, self.all_roles_list)
             self.stop()
         else:
@@ -151,9 +164,7 @@ async def add_netid_role(ctx, role: str, netid: str, all_roles_list):
     roles_to_del = set((all_roles := all_roles_list.values()))
     role_to_add = all_roles.mapping.get(role)
     user_roles = set(await ctx.member.fetch_roles())
-    final_roles = [
-        role.id for role in user_roles if role.id not in roles_to_del
-    ]
+    final_roles = [role.id for role in user_roles if role.id not in roles_to_del]
     final_roles.append(role_to_add)
     await ctx.member.edit(roles=final_roles)
     return

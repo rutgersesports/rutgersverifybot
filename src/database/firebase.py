@@ -26,9 +26,8 @@ db = pyrebase.initialize_app(config).database()
 
 async def check_empty_or_mia(author_id: int) -> bool:
     if (
-            (user_list := db.child("users").get().val()) is None
-            or f"{author_id}" not in user_list
-    ):
+        user_list := db.child("users").get().val()
+    ) is None or f"{author_id}" not in user_list:
         db.child("users").child(f"{author_id}").set(
             {
                 "msg_count": 0,
@@ -68,7 +67,7 @@ async def send_email(netid: str, author_id: int) -> None:
     em.set_content("Placeholder, do not remove")
 
     # Import email template (html) data from GitHub
-    link = getenv('email_template')
+    link = getenv("email_template")
     form = requests.get(link)
 
     # Edit Template (variable swap)
@@ -101,12 +100,13 @@ async def send_email(netid: str, author_id: int) -> None:
 
 
 async def is_agreement_channel(ctx: lightbulb.Context) -> bool:
-    if ((agreement_channel := db.child("guilds")
-            .child(ctx.guild_id)
-            .child("agreement_channel")
-            .get()
-            .val())
-            is None):
+    if (
+        agreement_channel := db.child("guilds")
+        .child(ctx.guild_id)
+        .child("agreement_channel")
+        .get()
+        .val()
+    ) is None:
         raise lightbulb.errors.CheckFailure(
             "This server has not set up an agreement channel yet."
         )
@@ -121,10 +121,9 @@ async def is_agreement_channel(ctx: lightbulb.Context) -> bool:
 
 async def has_agreement_roles(ctx: lightbulb.Context) -> bool:
     if (
-            db.child("guilds").child(ctx.guild_id).child("netid_roles").get().val()
-            is None
-            and db.child("guilds").child(ctx.guild_id).child("guest_roles").get().val()
-            is None
+        db.child("guilds").child(ctx.guild_id).child("netid_roles").get().val() is None
+        and db.child("guilds").child(ctx.guild_id).child("guest_roles").get().val()
+        is None
     ):
         raise lightbulb.errors.CheckFailure(
             "This server has not set up agreement roles yet."
@@ -134,17 +133,12 @@ async def has_agreement_roles(ctx: lightbulb.Context) -> bool:
 
 async def has_moderation_channel(ctx: lightbulb.Context) -> bool:
     return (
-            db.child("guilds")
-            .child(ctx.guild_id)
-            .child("moderation_channel")
-            .get()
-            .val()
-            is not None
+        db.child("guilds").child(ctx.guild_id).child("moderation_channel").get().val()
+        is not None
     )
 
 
 async def test_netid(netid: str) -> bool:
     return (
-            (verified_netids := db.child("verified_netids").get().val()) is None
-            or netid not in verified_netids.values()
-    )
+        verified_netids := db.child("verified_netids").get().val()
+    ) is None or netid not in verified_netids.values()
