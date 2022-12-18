@@ -36,7 +36,9 @@ async def message_edit(event: hikari.GuildMessageUpdateEvent) -> None:
         .set_thumbnail(event.author.avatar_url)
         .set_footer(text=(me := plugin.bot.get_me()).username, icon=me.avatar_url)
     )
-    await plugin.bot.rest.create_message(moderation_channel, embed=embed)
+    await plugin.bot.rest.create_message(
+        moderation_channel, embed=embed, attachments=event.message.attachments
+    )
 
 
 @plugin.listener(hikari.GuildMessageDeleteEvent)
@@ -70,7 +72,9 @@ async def message_delete(event: hikari.GuildMessageDeleteEvent):
         .set_thumbnail(deleter.avatar_url)
         .set_footer(text=(me := plugin.bot.get_me()).username, icon=me.avatar_url)
     )
-    await plugin.bot.rest.create_message(moderation_channel, embed=embed)
+    await plugin.bot.rest.create_message(
+        moderation_channel, embed=embed, attachments=event.old_message.attachments
+    )
 
 
 def load(bot: lightbulb.BotApp):
