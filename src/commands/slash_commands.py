@@ -3,7 +3,7 @@ import lightbulb
 import miru
 
 from src.database.firebase import is_agreement_channel, has_agreement_roles, db
-from src.commands.verify import SelectMenu, DeleteMenu
+from src.commands.modals import SelectMenu, DeleteMenu
 
 plugin = lightbulb.Plugin("slash_plugin")
 
