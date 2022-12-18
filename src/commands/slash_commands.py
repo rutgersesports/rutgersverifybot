@@ -270,14 +270,18 @@ async def delete_agreement_role(ctx: lightbulb.SlashContext) -> None:
     ) is not None:
         join_roles = []
     else:
-        join_roles = join_roles.values()
+        join_roles = join_roles.keys()
     if all_roles_list is None:
+        all_roles_list = []
+    else:
+        all_roles_list = all_roles_list.keys()
+    if all_roles_list == [] and join_roles == []:
         await ctx.respond(
             "There are no agreement roles set for this server.",
             flags=hikari.MessageFlag.EPHEMERAL,
         )
-    else:
-        all_roles_list = all_roles_list.keys()
+        return
+    all_roles_list += join_roles
     netid_roles = (
         db.child("guilds").child(ctx.guild_id).child("netid_roles").get().val()
     )
