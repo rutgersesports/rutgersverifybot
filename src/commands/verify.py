@@ -51,7 +51,7 @@ class SelectMenu(miru.Select):
         elif (
             netid := fb.db.child("users").child(ctx.user.id).child("netid").get().val()
         ) is not None:
-            await add_netid_role(ctx, self.values[0], netid, self.all_roles_list)
+            await add_netid_role(ctx, self.values[0], netid, self.all_roles_list, True)
             self.view.stop()
         else:
             view = ModalView(self.values[0], self.all_roles_list)
@@ -143,7 +143,7 @@ class SecondModal(miru.Modal):
         elif fb.db.child("users").child(ctx.user.id).child(
             "ver_code"
         ).get().val() == int(self.ver_code.value):
-            await add_netid_role(ctx, self.role, self.netid, self.all_roles_list)
+            await add_netid_role(ctx, self.role, self.netid, self.all_roles_list, False)
             self.stop()
         else:
             await ctx.edit_response(
@@ -151,7 +151,7 @@ class SecondModal(miru.Modal):
             )
 
 
-async def add_netid_role(ctx, role: str, netid: str, all_roles_list):
+async def add_netid_role(ctx, role: str, netid: str, all_roles_list, exists: bool):
     await ctx.edit_response(
         "You have been verified for a NetID role! Have a good time!",
         components=[],
@@ -159,7 +159,7 @@ async def add_netid_role(ctx, role: str, netid: str, all_roles_list):
     fb.db.child("users").child(ctx.user.id).child("verification").set("netid")
     if netid is not None:
         fb.db.child("users").child(ctx.user.id).child("netid").set(netid)
-    else:
+    if not exists:
         fb.db.child("verified_netids").push(netid)
     roles_to_del = set((all_roles := all_roles_list.values()))
     role_to_add = all_roles.mapping.get(role)
