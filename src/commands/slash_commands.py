@@ -106,8 +106,20 @@ async def set_netid_roles(ctx: lightbulb.SlashContext) -> None:
         roles = []
     else:
         roles = roles.values()
+    if (
+        join_roles := db.child("guilds")
+        .child(ctx.guild_id)
+        .child("join_roles")
+        .get()
+        .val()
+    ) is None:
+        join_roles = []
+    else:
+        join_roles = join_roles.values()
     possibleRoles = [
-        v[1] for v in ctx.options.items() if v[1] is not None and v[1].id not in roles
+        v[1]
+        for v in ctx.options.items()
+        if v[1] is not None and v[1].id not in roles and v[1].id not in join_roles
     ]
     names = []
     for role in possibleRoles:
@@ -164,8 +176,20 @@ async def set_guest_roles(ctx: lightbulb.SlashContext) -> None:
         roles = []
     else:
         roles = roles.values()
+    if (
+        join_roles := db.child("guilds")
+        .child(ctx.guild_id)
+        .child("join_roles")
+        .get()
+        .val()
+    ) is None:
+        join_roles = []
+    else:
+        join_roles = join_roles.values()
     possibleRoles = [
-        v[1] for v in ctx.options.items() if v[1] is not None and v[1].id not in roles
+        v[1]
+        for v in ctx.options.items()
+        if v[1] is not None and v[1].id not in roles and v[1].id not in join_roles
     ]
     names = []
     for role in possibleRoles:
@@ -237,6 +261,16 @@ async def delete_agreement_role(ctx: lightbulb.SlashContext) -> None:
     all_roles_list = (
         db.child("guilds").child(ctx.guild_id).child("all_roles").get().val()
     )
+    if (
+        join_roles := db.child("guilds")
+        .child(ctx.guild_id)
+        .child("join_roles")
+        .get()
+        .val()
+    ) is not None:
+        join_roles = []
+    else:
+        join_roles = join_roles.values()
     if all_roles_list is None:
         await ctx.respond(
             "There are no agreement roles set for this server.",
@@ -256,6 +290,7 @@ async def delete_agreement_role(ctx: lightbulb.SlashContext) -> None:
         DeleteMenu(
             options=[miru.SelectOption(label=k) for k in all_roles_list][::-1],
             netid_roles=netid_roles,
+            join_roles=join_roles,
         )
     )
     message = await ctx.respond(
@@ -265,6 +300,72 @@ async def delete_agreement_role(ctx: lightbulb.SlashContext) -> None:
     )
     await view.start(message)
     await view.wait()
+
+
+@plugin.command()
+@lightbulb.add_checks(
+    lightbulb.has_guild_permissions(hikari.Permissions.MANAGE_GUILD),
+    lightbulb.checks.guild_only,
+)
+@lightbulb.option(
+    name="role3",
+    description="The role to add to this server's join roles.",
+    type=hikari.Role,
+    required=False,
+)
+@lightbulb.option(
+    name="role2",
+    description="The role to add to this server's join roles.",
+    type=hikari.Role,
+    required=False,
+)
+@lightbulb.option(
+    name="role",
+    description="The role to add to this server's join roles.",
+    type=hikari.Role,
+    required=True,
+)
+@lightbulb.command(
+    name="set_join_roles", description="Sets the join roles that require NetID."
+)
+@lightbulb.implements(lightbulb.SlashCommand)
+async def set_join_roles(ctx: lightbulb.SlashContext) -> None:
+    if (
+        agreement_roles := db.child("guilds")
+        .child(ctx.guild_id)
+        .child("all_roles")
+        .get()
+        .val()
+    ) is None:
+        agreement_roles = []
+    else:
+        agreement_roles = agreement_roles.values()
+    if (
+        roles := db.child("guilds").child(ctx.guild_id).child("join_roles").get().val()
+    ) is None:
+        roles = []
+    else:
+        roles = roles.values()
+    possibleRoles = [
+        v[1]
+        for v in ctx.options.items()
+        if v[1] is not None and v[1].id not in roles and v[1].id not in agreement_roles
+    ]
+    names = []
+    for role in possibleRoles:
+        db.child("guilds").child(ctx.guild_id).child("join_roles").child(role.name).set(
+            role.id
+        )
+        names.append(role.mention)
+    final = ", ".join(names)
+    response = f'{final} {"has" if len([possibleRoles]) == 1 else "have"} been added to the join roles.'
+
+    await ctx.respond(
+        f"{response} "
+        if possibleRoles != []
+        else "All roles already belong to an agreement group.",
+        flags=hikari.MessageFlag.EPHEMERAL,
+    )
 
 
 @plugin.listener(lightbulb.CommandErrorEvent)

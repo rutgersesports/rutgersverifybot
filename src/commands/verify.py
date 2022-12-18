@@ -4,14 +4,21 @@ from src.database import firebase as fb
 
 
 class DeleteMenu(miru.Select):
-    def __init__(self, netid_roles, *args, **kwargs) -> None:
+    def __init__(self, netid_roles, join_roles, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.netid_roles = netid_roles
+        self.join_roles = join_roles
 
     async def callback(self, ctx: miru.Context) -> None:
         await ctx.edit_response(
             f"{self.values[0]} has been removed from the agreement roles", components=[]
         )
+        if self.values[0] in self.join_roles:
+            fb.db.child("guilds").child(ctx.guild_id).child("join_roles").child(
+                self.values[0]
+            ).remove()
+            self.view.stop()
+            return
         fb.db.child("guilds").child(ctx.guild_id).child("all_roles").child(
             self.values[0]
         ).remove()
