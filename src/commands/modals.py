@@ -113,7 +113,8 @@ class FirstModal(miru.Modal):
                 all_roles_list=self.all_roles_list,
             )
             message = await ctx.edit_response(
-                "Please check your Rutgers email for the verification code!", components=view
+                "Please check your Rutgers email for the verification code!",
+                components=view,
             )
             await view.start(message)
             await fb.send_email(self.netid.value, ctx.author.id)
