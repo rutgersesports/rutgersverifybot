@@ -3,7 +3,8 @@ import lightbulb
 from src.database import firebase as fb
 
 plugin = lightbulb.Plugin("moderation_plugin")
-plugin.add_checks(lightbulb.Check(fb.has_moderation_channel))
+plugin.add_checks(lightbulb.Check(fb.has_moderation_channel),
+                  lightbulb.checks.bot_has_channel_permissions(hikari.Permissions.VIEW_CHANNEL))
 
 
 @plugin.listener(hikari.GuildMessageUpdateEvent)
