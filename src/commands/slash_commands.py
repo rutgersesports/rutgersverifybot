@@ -18,10 +18,10 @@ plugin = lightbulb.Plugin("slash_plugin")
     description="Sets the agreement channel of the server.",
 )
 @lightbulb.implements(lightbulb.SlashCommand)
-async def set_agreement_roles(ctx: lightbulb.SlashContext) -> None:
+async def set_agreement_channel(ctx: lightbulb.SlashContext) -> None:
     current = (
         db.child("guilds")
-        .child(f"{ctx.guild_id}")
+        .child(ctx.guild_id)
         .child("agreement_channel")
         .get(ctx.channel_id)
         .val()
@@ -31,7 +31,7 @@ async def set_agreement_roles(ctx: lightbulb.SlashContext) -> None:
             f"{ctx.get_channel().mention} is already the agreement channel."
         )
         return
-    db.child("guilds").child(f"{ctx.guild_id}").child("agreement_channel").set(
+    db.child("guilds").child(ctx.guild_id).child("agreement_channel").set(
         ctx.channel_id
     )
     await ctx.respond(
@@ -45,47 +45,37 @@ async def set_agreement_roles(ctx: lightbulb.SlashContext) -> None:
     lightbulb.has_guild_permissions(hikari.Permissions.MANAGE_GUILD),
     lightbulb.checks.guild_only,
 )
-@lightbulb.option(
-    name="role10",
-    description="The role to add to this server's NetID roles.",
-    type=hikari.Role,
-    required=False,
+@lightbulb.command(
+    name="set_moderation_channel",
+    description="Sets the moderation channel of the server.",
 )
-@lightbulb.option(
-    name="role9",
-    description="The role to add to this server's NetID roles.",
-    type=hikari.Role,
-    required=False,
-)
-@lightbulb.option(
-    name="role8",
-    description="The role to add to this server's NetID roles.",
-    type=hikari.Role,
-    required=False,
-)
-@lightbulb.option(
-    name="role7",
-    description="The role to add to this server's NetID roles.",
-    type=hikari.Role,
-    required=False,
-)
-@lightbulb.option(
-    name="role6",
-    description="The role to add to this server's NetID roles.",
-    type=hikari.Role,
-    required=False,
-)
-@lightbulb.option(
-    name="role5",
-    description="The role to add to this server's NetID roles.",
-    type=hikari.Role,
-    required=False,
-)
-@lightbulb.option(
-    name="role4",
-    description="The role to add to this server's NetID roles.",
-    type=hikari.Role,
-    required=False,
+@lightbulb.implements(lightbulb.SlashCommand)
+async def set_moderation_channel(ctx: lightbulb.SlashContext) -> None:
+    current = (
+        db.child("guilds")
+        .child(ctx.guild_id)
+        .child("moderation_channel")
+        .get(ctx.channel_id)
+        .val()
+    )
+    if current == ctx.channel_id:
+        await ctx.respond(
+            f"{ctx.get_channel().mention} is already the moderation channel."
+        )
+        return
+    db.child("guilds").child(ctx.guild_id).child("moderation_channel").set(
+        ctx.channel_id
+    )
+    await ctx.respond(
+        f"{ctx.get_channel().mention} has been set to {ctx.get_guild().name}'s moderation channel",
+        flags=hikari.MessageFlag.EPHEMERAL,
+    )
+
+
+@plugin.command()
+@lightbulb.add_checks(
+    lightbulb.has_guild_permissions(hikari.Permissions.MANAGE_GUILD),
+    lightbulb.checks.guild_only,
 )
 @lightbulb.option(
     name="role3",
@@ -110,31 +100,21 @@ async def set_agreement_roles(ctx: lightbulb.SlashContext) -> None:
 )
 @lightbulb.implements(lightbulb.SlashCommand)
 async def set_netid_roles(ctx: lightbulb.SlashContext) -> None:
-    if (
-        db.child("guilds").child(f"{ctx.guild_id}").child("all_roles").get().val()
-        is None
-    ):
+    if (roles := db.child("guilds").child(ctx.guild_id).child("all_roles").get().val()) is None:
         roles = []
     else:
-        roles = (
-            db.child("guilds")
-            .child(f"{ctx.guild_id}")
-            .child("all_roles")
-            .get()
-            .val()
-            .values()
-        )
+        roles = roles.values()
     possibleRoles = [
         v[1] for v in ctx.options.items() if v[1] is not None and v[1].id not in roles
     ]
     names = []
     for role in possibleRoles:
-        db.child("guilds").child(f"{ctx.guild_id}").child("netid_roles").child(
-            f"{role.name}"
+        db.child("guilds").child(ctx.guild_id).child("netid_roles").child(
+            role.name
         ).set(role.id)
-        db.child("guilds").child(f"{ctx.guild_id}").child("all_roles").child(
-            f"{role.name}"
-        ).set(role.id)
+        db.child("guilds").child(ctx.guild_id).child("all_roles").child(role.name).set(
+            role.id
+        )
         names.append(role.mention)
     final = ", ".join(names)
     response = f'{final} {"has" if len([possibleRoles]) == 1 else "have"} been added to the NetID roles.'
@@ -151,48 +131,6 @@ async def set_netid_roles(ctx: lightbulb.SlashContext) -> None:
 @lightbulb.add_checks(
     lightbulb.has_guild_permissions(hikari.Permissions.MANAGE_GUILD),
     lightbulb.checks.guild_only,
-)
-@lightbulb.option(
-    name="role10",
-    description="The role to add to this server's guest roles.",
-    type=hikari.Role,
-    required=False,
-)
-@lightbulb.option(
-    name="role9",
-    description="The role to add to this server's guest roles.",
-    type=hikari.Role,
-    required=False,
-)
-@lightbulb.option(
-    name="role8",
-    description="The role to add to this server's guest roles.",
-    type=hikari.Role,
-    required=False,
-)
-@lightbulb.option(
-    name="role7",
-    description="The role to add to this server's guest roles.",
-    type=hikari.Role,
-    required=False,
-)
-@lightbulb.option(
-    name="role6",
-    description="The role to add to this server's guest roles.",
-    type=hikari.Role,
-    required=False,
-)
-@lightbulb.option(
-    name="role5",
-    description="The role to add to this server's guest roles.",
-    type=hikari.Role,
-    required=False,
-)
-@lightbulb.option(
-    name="role4",
-    description="The role to add to this server's guest roles.",
-    type=hikari.Role,
-    required=False,
 )
 @lightbulb.option(
     name="role3",
@@ -218,31 +156,21 @@ async def set_netid_roles(ctx: lightbulb.SlashContext) -> None:
 )
 @lightbulb.implements(lightbulb.SlashCommand)
 async def set_guest_roles(ctx: lightbulb.SlashContext) -> None:
-    if (
-        db.child("guilds").child(f"{ctx.guild_id}").child("all_roles").get().val()
-        is None
-    ):
+    if (roles := db.child("guilds").child(ctx.guild_id).child("all_roles").get().val()) is None:
         roles = []
     else:
-        roles = (
-            db.child("guilds")
-            .child(f"{ctx.guild_id}")
-            .child("all_roles")
-            .get()
-            .val()
-            .values()
-        )
+        roles = roles.values()
     possibleRoles = [
         v[1] for v in ctx.options.items() if v[1] is not None and v[1].id not in roles
     ]
     names = []
     for role in possibleRoles:
-        db.child("guilds").child(f"{ctx.guild_id}").child("guest_roles").child(
-            f"{role.name}"
+        db.child("guilds").child(ctx.guild_id).child("guest_roles").child(
+            role.name
         ).set(role.id)
-        db.child("guilds").child(f"{ctx.guild_id}").child("all_roles").child(
-            f"{role.name}"
-        ).set(role.id)
+        db.child("guilds").child(ctx.guild_id).child("all_roles").child(role.name).set(
+            role.id
+        )
         names.append(role.mention)
     final = ", ".join(names)
     response = f'{final} {"has" if len([possibleRoles]) == 1 else "have"} been added to the guest roles.'
@@ -265,15 +193,10 @@ async def set_guest_roles(ctx: lightbulb.SlashContext) -> None:
 @lightbulb.implements(lightbulb.SlashCommand)
 async def agree(ctx: lightbulb.SlashContext) -> None:
     all_roles_list = (
-        db.child("guilds")
-        .child(f"{ctx.guild_id}")
-        .child("all_roles")
-        .get()
-        .val()
-        .keys()
+        db.child("guilds").child(ctx.guild_id).child("all_roles").get().val()
     )
     netid_roles = (
-        db.child("guilds").child(f"{ctx.guild_id}").child("netid_roles").get().val()
+        db.child("guilds").child(ctx.guild_id).child("netid_roles").get().val()
     )
     if netid_roles is None:
         netid_roles = []
@@ -282,12 +205,13 @@ async def agree(ctx: lightbulb.SlashContext) -> None:
     view = miru.View()
     view.add_item(
         SelectMenu(
-            options=[miru.SelectOption(label=k) for k in all_roles_list][::-1],
+            options=[miru.SelectOption(label=k) for k in all_roles_list.keys()][::-1],
             netid_roles=netid_roles,
+            all_roles_list=all_roles_list
         )
     )
     message = await ctx.respond(
-        "Select your role type:",
+        "Select your role:",
         components=view.build(),
         flags=hikari.MessageFlag.EPHEMERAL,
     )
@@ -307,7 +231,7 @@ async def agree(ctx: lightbulb.SlashContext) -> None:
 @lightbulb.implements(lightbulb.SlashCommand)
 async def delete_agreement_role(ctx: lightbulb.SlashContext) -> None:
     all_roles_list = (
-        db.child("guilds").child(f"{ctx.guild_id}").child("all_roles").get().val()
+        db.child("guilds").child(ctx.guild_id).child("all_roles").get().val()
     )
     if all_roles_list is None:
         await ctx.respond(
@@ -317,7 +241,7 @@ async def delete_agreement_role(ctx: lightbulb.SlashContext) -> None:
     else:
         all_roles_list = all_roles_list.keys()
     netid_roles = (
-        db.child("guilds").child(f"{ctx.guild_id}").child("netid_roles").get().val()
+        db.child("guilds").child(ctx.guild_id).child("netid_roles").get().val()
     )
     if netid_roles is None:
         netid_roles = []
@@ -331,7 +255,7 @@ async def delete_agreement_role(ctx: lightbulb.SlashContext) -> None:
         )
     )
     message = await ctx.respond(
-        "Select your role type:",
+        "Select the role to remove:",
         components=view.build(),
         flags=hikari.MessageFlag.EPHEMERAL,
     )
@@ -346,7 +270,7 @@ async def on_error(event: lightbulb.CommandErrorEvent) -> None:
             f"You do not have permissions to use `{event.context.command.name}`.",
             flags=hikari.MessageFlag.EPHEMERAL,
         )
-    if isinstance(event.exception, lightbulb.CheckFailure):
+    elif isinstance(event.exception, lightbulb.CheckFailure):
         await event.context.respond(event.exception, flags=hikari.MessageFlag.EPHEMERAL)
 
 

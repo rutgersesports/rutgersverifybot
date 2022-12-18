@@ -1,6 +1,8 @@
 hikari==2.0.0.dev113
 hikari_lightbulb==2.3.1
 hikari_miru==2.0.1
+lightbulb==0.1d
+miru==0.2.0
 Pyrebase4==4.6.0
 python-dotenv==0.21.0
 requests==2.28.1
