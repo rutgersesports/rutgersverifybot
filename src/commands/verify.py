@@ -55,11 +55,13 @@ class SelectMenu(miru.Select):
             final_roles.append(role_to_add)
             await ctx.member.edit(roles=final_roles)
             self.view.stop()
+            await add_join_roles(ctx.bot, ctx.guild_id, ctx.user)
         elif (
             netid := fb.db.child("users").child(ctx.user.id).child("netid").get().val()
         ) is not None:
             await add_netid_role(ctx, self.values[0], netid, self.all_roles_list, True)
             self.view.stop()
+            await add_join_roles(ctx.bot, ctx.guild_id, ctx.user)
         else:
             view = ModalView(self.values[0], self.all_roles_list)
             message = await ctx.edit_response(
@@ -152,6 +154,7 @@ class SecondModal(miru.Modal):
         ).get().val() == int(self.ver_code.value):
             await add_netid_role(ctx, self.role, self.netid, self.all_roles_list, False)
             self.stop()
+            await add_join_roles(ctx.bot, ctx.guild_id, ctx.user)
         else:
             await ctx.edit_response(
                 "That is not correct! Please try again, or grab a different role."
@@ -175,3 +178,16 @@ async def add_netid_role(ctx, role: str, netid: str, all_roles_list, exists: boo
     final_roles.append(role_to_add)
     await ctx.member.edit(roles=final_roles)
     return
+
+
+async def add_join_roles(bot: miru.MiruAware, guild_id: int, user: hikari.User):
+    if (
+        join_roles := fb.db.child("guilds")
+        .child(guild_id)
+        .child("join_roles")
+        .get()
+        .val()
+    ) is None:
+        return
+    for role in join_roles.values():
+        await bot.rest.add_role_to_member(guild_id, user, role)

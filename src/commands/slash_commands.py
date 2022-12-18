@@ -267,7 +267,7 @@ async def delete_agreement_role(ctx: lightbulb.SlashContext) -> None:
         .child("join_roles")
         .get()
         .val()
-    ) is not None:
+    ) is None:
         join_roles = []
     else:
         join_roles = join_roles.keys()
@@ -281,10 +281,11 @@ async def delete_agreement_role(ctx: lightbulb.SlashContext) -> None:
             flags=hikari.MessageFlag.EPHEMERAL,
         )
         return
-    all_roles_list += join_roles
+    all_roles_list = list(all_roles_list) + list(join_roles)
     netid_roles = (
         db.child("guilds").child(ctx.guild_id).child("netid_roles").get().val()
     )
+    print("here")
     if netid_roles is None:
         netid_roles = []
     else:
