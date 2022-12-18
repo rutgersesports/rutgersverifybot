@@ -27,4 +27,5 @@ def run() -> None:
             name="the air guitar championship",
             type=hikari.ActivityType.COMPETING,
         ),
+
     )

@@ -98,20 +98,21 @@ class FirstModal(miru.Modal):
 
     # The callback function is called after the user hits 'Submit'
     async def callback(self, ctx: miru.ModalContext) -> None:
-        if not await fb.test_netid(self.netid.value):
+        if not self.netid.value.isalnum():
+            await ctx.edit_response("Please make sure you're only inputting your NetID!")
+        elif not await fb.test_netid(self.netid.value):
             await ctx.edit_response(
-                "This NetID has already been verified. Please try again.", components=[]
+                "This NetID has already been verified. Please try again."
             )
-            self.stop()
-            return
-        view = VercodeView(
-            role=self.role, netid=self.netid.value, all_roles_list=self.all_roles_list
-        )
-        message = await ctx.edit_response(
-            "Please check your email for the verification code!", components=view
-        )
-        await view.start(message)
-        await fb.send_email(self.netid.value, ctx.author.id)
+        else:
+            view = VercodeView(
+                role=self.role, netid=self.netid.value, all_roles_list=self.all_roles_list
+            )
+            message = await ctx.edit_response(
+                "Please check your email for the verification code!", components=view
+            )
+            await view.start(message)
+            await fb.send_email(self.netid.value, ctx.author.id)
 
 
 class VercodeView(miru.View):
