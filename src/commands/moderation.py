@@ -73,18 +73,5 @@ async def message_delete(event: hikari.GuildMessageDeleteEvent):
     await plugin.bot.rest.create_message(moderation_channel, embed=embed)
 
 
-@plugin.listener(hikari.MemberCreateEvent)
-async def add_join_roles(event: hikari.MemberCreateEvent):
-    if (
-        join_roles := fb.db.child("guilds")
-        .child(event.guild_id)
-        .child("join_roles")
-        .get()
-        .val()
-    ) is None:
-        return
-    await event.member.edit(roles=join_roles.values())
-
-
 def load(bot: lightbulb.BotApp):
     bot.add_plugin(plugin)
