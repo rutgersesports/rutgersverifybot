@@ -26,9 +26,8 @@ db = pyrebase.initialize_app(config).database()
 
 async def check_empty_or_mia(author_id: int) -> bool:
     if (
-        db.child("users").get().val() is None
-        or f"{author_id}" not in db.child("users").get().val()
-    ):
+        user_list := db.child("users").get().val()
+    ) is None or f"{author_id}" not in user_list:
         db.child("users").child(f"{author_id}").set(
             {
                 "msg_count": 0,
@@ -51,13 +50,12 @@ def check_vercode(code: int, user_id: int) -> bool:
 
 
 async def send_email(netid: str, author_id: int) -> None:
-
     # Declare var, FIX NETID/ver_code input parsing
     email_sender = getenv("email")
     email_password = getenv("emailpass")
     email_receiver = netid + "@scarletmail.rutgers.edu"
     ver_code = random.randrange(100000, 999999)
-    db.child("users").child(f"{author_id}").child("ver_code").set(ver_code)
+    db.child("users").child(author_id).child("ver_code").set(ver_code)
 
     subject = "Your CoolCat verification code"
 
@@ -69,7 +67,7 @@ async def send_email(netid: str, author_id: int) -> None:
     em.set_content("Placeholder, do not remove")
 
     # Import email template (html) data from GitHub
-    link = "https://raw.githubusercontent.com/rutgersesports/rutgersverifybot/main/src/database/emailtemplate.html"
+    link = getenv("email_template")
     form = requests.get(link)
 
     # Edit Template (variable swap)
@@ -84,7 +82,6 @@ async def send_email(netid: str, author_id: int) -> None:
 
     # Send email using SSL
     with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as smtp:
-
         smtp.login(email_sender, email_password)
 
         smtp.sendmail(email_sender, email_receiver, em.as_string())
@@ -104,25 +101,17 @@ async def send_email(netid: str, author_id: int) -> None:
 
 async def is_agreement_channel(ctx: lightbulb.Context) -> bool:
     if (
-        db.child("guilds")
-        .child(f"{ctx.guild_id}")
+        agreement_channel := db.child("guilds")
+        .child(ctx.guild_id)
         .child("agreement_channel")
         .get()
         .val()
-        is None
-    ):
+    ) is None:
         raise lightbulb.errors.CheckFailure(
             "This server has not set up an agreement channel yet."
         )
     chan_id = int(ctx.channel_id)
-    agree_id = (
-        db.child("guilds")
-        .child(f"{ctx.guild_id}")
-        .child("agreement_channel")
-        .get()
-        .val()
-    )
-    if chan_id == agree_id:
+    if chan_id == agreement_channel:
         return True
     else:
         raise lightbulb.errors.CheckFailure(
@@ -132,9 +121,8 @@ async def is_agreement_channel(ctx: lightbulb.Context) -> bool:
 
 async def has_agreement_roles(ctx: lightbulb.Context) -> bool:
     if (
-        db.child("guilds").child(f"{ctx.guild_id}").child("netid_roles").get().val()
-        is None
-        and db.child("guilds").child(f"{ctx.guild_id}").child("guest_roles").get().val()
+        db.child("guilds").child(ctx.guild_id).child("netid_roles").get().val() is None
+        and db.child("guilds").child(ctx.guild_id).child("guest_roles").get().val()
         is None
     ):
         raise lightbulb.errors.CheckFailure(
@@ -143,8 +131,14 @@ async def has_agreement_roles(ctx: lightbulb.Context) -> bool:
     return True
 
 
+async def has_moderation_channel(ctx: lightbulb.Context) -> bool:
+    return (
+        db.child("guilds").child(ctx.guild_id).child("moderation_channel").get().val()
+        is not None
+    )
+
+
 async def test_netid(netid: str) -> bool:
     return (
-        db.child("verified_netids").get().val() is None
-        or netid not in db.child("verified_netids").get().val().values()
-    )
+        verified_netids := db.child("verified_netids").get().val()
+    ) is None or netid not in verified_netids.values()
