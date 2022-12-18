@@ -75,8 +75,14 @@ async def message_delete(event: hikari.GuildMessageDeleteEvent):
 
 @plugin.listener(hikari.MemberCreateEvent)
 async def add_join_roles(event: hikari.MemberCreateEvent):
-    if (join_roles := fb.db.child("guilds").child(event.guild_id).child("join_roles").get().val()) is None:
-        return 
+    if (
+        join_roles := fb.db.child("guilds")
+        .child(event.guild_id)
+        .child("join_roles")
+        .get()
+        .val()
+    ) is None:
+        return
     await event.member.edit(roles=join_roles.values())
 
 
