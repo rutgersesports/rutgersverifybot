@@ -1,6 +1,6 @@
 import hikari
 import lightbulb
-import src.database.firebase as fb
+from src.database import firebase as fb
 
 plugin = lightbulb.Plugin("moderation_plugin")
 plugin.add_checks(lightbulb.Check(fb.has_moderation_channel))
