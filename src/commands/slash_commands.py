@@ -331,7 +331,8 @@ async def delete_agreement_role(ctx: lightbulb.SlashContext) -> None:
     required=True,
 )
 @lightbulb.command(
-    name="set_join_roles", description="Sets the join roles that require NetID."
+    name="set_join_roles",
+    description="Sets the join roles that are added automatically.",
 )
 @lightbulb.implements(lightbulb.SlashCommand)
 async def set_join_roles(ctx: lightbulb.SlashContext) -> None:
