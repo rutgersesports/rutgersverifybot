@@ -10,6 +10,10 @@ bot = lightbulb.BotApp(
     os.getenv("token"),
     intents=hikari.Intents.ALL,
     help_slash_command=True,
+    cache_settings=hikari.impl.CacheSettings(
+        max_messages=1000,
+        components=hikari.api.CacheComponents.ALL
+    ),
 )
 
 

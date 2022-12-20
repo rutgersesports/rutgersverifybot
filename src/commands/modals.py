@@ -102,14 +102,14 @@ class FirstModal(miru.Modal):
             await ctx.edit_response(
                 "Please make sure you're only inputting your NetID!"
             )
-        elif not await fb.test_netid(self.netid.value):
+        elif not await fb.test_netid(self.netid.value.casefold()):
             await ctx.edit_response(
                 "This NetID has already been verified. Please try again."
             )
         else:
             view = VercodeView(
                 role=self.role,
-                netid=self.netid.value,
+                netid=self.netid.value.casefold(),
                 all_roles_list=self.all_roles_list,
             )
             message = await ctx.edit_response(
