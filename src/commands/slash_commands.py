@@ -374,6 +374,33 @@ async def set_join_roles(ctx: lightbulb.SlashContext) -> None:
     )
 
 
+@plugin.command()
+@lightbulb.option(
+    name="scope",
+    description="Whether to show info about all servers or just the current server.",
+    type=str,
+    required=False,
+    choices=["current", "all"],
+)
+@lightbulb.command(
+    name="server_info",
+    description="Shows all the servers that CoolCat is in.",
+)
+@lightbulb.implements(lightbulb.SlashCommand)
+async def server_info(ctx: lightbulb.SlashContext):
+    if ctx.options.items() == "current":
+        await ctx.respond(
+            "Not implemented yet, this will show all config options soon",
+            flags=hikari.MessageFlag.EPHEMERAL,
+        )
+        return
+    await ctx.respond(
+        f"CoolCat bot is in the following servers: "
+        f"{', '.join([guild.name for guild in plugin.bot.cache.get_available_guilds_view().values()])}",
+        flags=hikari.MessageFlag.EPHEMERAL,
+    )
+
+
 @plugin.listener(lightbulb.CommandErrorEvent)
 async def on_error(event: lightbulb.CommandErrorEvent) -> None:
     if isinstance(event.exception, lightbulb.MissingRequiredPermission):
