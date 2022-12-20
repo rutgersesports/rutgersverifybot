@@ -281,7 +281,7 @@ async def delete_agreement_role(ctx: lightbulb.SlashContext) -> None:
             flags=hikari.MessageFlag.EPHEMERAL,
         )
         return
-    all_roles_list = list(all_roles_list) + list(join_roles)
+    all_roles_list = list(join_roles) + list(all_roles_list)
     netid_roles = (
         db.child("guilds").child(ctx.guild_id).child("netid_roles").get().val()
     )
