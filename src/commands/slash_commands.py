@@ -388,7 +388,7 @@ async def set_join_roles(ctx: lightbulb.SlashContext) -> None:
 )
 @lightbulb.implements(lightbulb.SlashCommand)
 async def server_info(ctx: lightbulb.SlashContext):
-    if ctx.options.items() == "current":
+    if ctx.raw_options.values() == "current":
         await ctx.respond(
             "Not implemented yet, this will show all config options soon",
             flags=hikari.MessageFlag.EPHEMERAL,
