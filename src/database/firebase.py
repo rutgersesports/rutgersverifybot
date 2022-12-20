@@ -18,7 +18,6 @@ config = {
     "messagingSenderId": getenv("messagingSenderId"),
     "appId": getenv("appId"),
     "measurementId": getenv("measurementId"),
-    "serviceAccount": getenv("serviceAccount"),
 }
 
 db = pyrebase.initialize_app(config).database()
