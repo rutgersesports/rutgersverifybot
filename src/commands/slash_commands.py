@@ -379,7 +379,7 @@ async def set_join_roles(ctx: lightbulb.SlashContext) -> None:
     name="scope",
     description="Whether to show info about all servers or just the current server.",
     type=str,
-    required=False,
+    required=True,
     choices=["current", "all"],
 )
 @lightbulb.command(
@@ -388,7 +388,7 @@ async def set_join_roles(ctx: lightbulb.SlashContext) -> None:
 )
 @lightbulb.implements(lightbulb.SlashCommand)
 async def server_info(ctx: lightbulb.SlashContext):
-    if ctx.raw_options.values() == "current":
+    if ctx.options.scope == "current":
         await ctx.respond(
             "Not implemented yet, this will show all config options soon",
             flags=hikari.MessageFlag.EPHEMERAL,
