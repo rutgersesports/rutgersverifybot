@@ -3,7 +3,7 @@ import lightbulb
 import miru
 
 from src.database.firebase import is_agreement_channel, has_agreement_roles, db
-from src.commands.modals import SelectMenu, DeleteMenu
+from src.commands.modals import SelectMenu, DeleteMenu  # , HubMenu
 
 plugin = lightbulb.Plugin("slash_plugin")
 
@@ -401,6 +401,33 @@ async def server_info(ctx: lightbulb.SlashContext):
     )
 
 
+# @plugin.command()
+# @lightbulb.command(
+#     name="hub",
+#     description="Creates invites for all of the servers CoolCat is in!",
+# )
+# @lightbulb.implements(lightbulb.SlashCommand)
+# async def server_hub(ctx: lightbulb.SlashContext):
+#     guilds = plugin.bot.cache.get_available_guilds_view().values()
+#     guild_invites = []
+#     for guild in guilds:
+#         guild_invites.append(plugin.bot.rest.create_invite(await guild.fetch_rules_channel().cr_await))
+#     view = miru.View()
+#     view.add_item(
+#         HubMenu(
+#             options=[miru.SelectOption(label=guild.name) for guild in guilds][::-1],
+#             guilds=guild_invites[::-1],
+#         )
+#     )
+#     message = await ctx.respond(
+#         "Select a server to go to!:",
+#         components=view.build(),
+#         flags=hikari.MessageFlag.EPHEMERAL,
+#     )
+#     await view.start(message)
+#     await view.wait()
+
+
 @plugin.listener(lightbulb.CommandErrorEvent)
 async def on_error(event: lightbulb.CommandErrorEvent) -> None:
     if isinstance(event.exception, lightbulb.MissingRequiredPermission):
@@ -414,6 +441,8 @@ async def on_error(event: lightbulb.CommandErrorEvent) -> None:
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
 async def on_ping(event: hikari.GuildMessageCreateEvent):
+    if event.content is None:
+        return
     if not event.is_human:
         return
     if plugin.bot.get_me().mention not in event.content:

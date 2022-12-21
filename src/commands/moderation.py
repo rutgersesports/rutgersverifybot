@@ -11,6 +11,8 @@ plugin.add_checks(
 
 @plugin.listener(hikari.GuildMessageUpdateEvent)
 async def message_edit(event: hikari.GuildMessageUpdateEvent) -> None:
+    if isinstance(event.author, hikari.UndefinedType):
+        return
     if (old := event.old_message) is None:
         old = "This message is too old to track. - CoolCat"
     if event.author.is_bot:
@@ -50,6 +52,8 @@ async def message_delete(event: hikari.GuildMessageDeleteEvent):
         .get()
         .val()
     )
+    if moderation_channel is None:
+        return
     if (message := event.old_message) is None:
         await plugin.bot.rest.create_message(
             moderation_channel,
