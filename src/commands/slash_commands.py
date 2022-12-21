@@ -412,5 +412,14 @@ async def on_error(event: lightbulb.CommandErrorEvent) -> None:
         await event.context.respond(event.exception, flags=hikari.MessageFlag.EPHEMERAL)
 
 
+@plugin.listener(hikari.GuildMessageCreateEvent)
+async def on_ping(event: hikari.GuildMessageCreateEvent):
+    if not event.is_human:
+        return
+    if plugin.bot.get_me().mention not in event.content:
+        return
+    await event.message.respond(r"meow /ᐠ۪. ̱ . ۪ᐟ\\ﾉ")
+
+
 def load(bot: lightbulb.BotApp):
     bot.add_plugin(plugin)
