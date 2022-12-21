@@ -418,7 +418,7 @@ async def on_ping(event: hikari.GuildMessageCreateEvent):
         return
     if plugin.bot.get_me().mention not in event.content:
         return
-    await event.message.respond(r"meow /ᐠ۪. ̱ . ۪ᐟ\ﾉ")
+    await event.message.respond(r"meow /ᐠ۪. ̱ . ۪ᐟ\\ﾉ")
 
 
 def load(bot: lightbulb.BotApp):
