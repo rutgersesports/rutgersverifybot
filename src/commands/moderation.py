@@ -52,6 +52,8 @@ async def message_delete(event: hikari.GuildMessageDeleteEvent):
         .get()
         .val()
     )
+    if moderation_channel is None:
+        return 
     if (message := event.old_message) is None:
         await plugin.bot.rest.create_message(
             moderation_channel,
