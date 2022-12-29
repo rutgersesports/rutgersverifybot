@@ -3,23 +3,29 @@ import miru
 from src.database import firebase as fb
 
 
-# class HubMenu(miru.Select):
-#     def __init__(self, guilds, *args, **kwargs) -> None:
-#         super().__init__(*args, **kwargs)
-#         self.guilds = guilds
-#
-#     async def callback(self, ctx: miru.Context) -> None:
-#         try:
-#             index = self.options.
-#             await ctx.edit_response(
-#                 f"Here is an invite to {self.options[0].label}!\n"
-#                 f"{await ctx.bot.rest.create_invite(int(self.options[0].value)).cr_await[0]}", components=[]
-#             )
-#         except hikari.ForbiddenError:
-#             await ctx.edit_response(
-#                "This server doesn't allow CoolCat to make invites.", components=[]
-#             )
-#         self.view.stop()
+class HubMenu(miru.Select):
+    def __init__(self, guilds, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.guilds = guilds
+
+    async def callback(self, ctx: miru.Context) -> None:
+        try:
+            invite = self.guilds[self.values[0]]
+            if invite is None:
+                await ctx.edit_response(
+                    "This server doesn't allow CoolCat to make invites.", components=[]
+                )
+                self.view.stop()
+                return
+            await ctx.edit_response(
+                f"Here is an invite to {self.options[0].label}!\n" f"{invite}",
+                components=[],
+            )
+        except hikari.ForbiddenError:
+            await ctx.edit_response(
+                "This server doesn't allow CoolCat to make invites.", components=[]
+            )
+        self.view.stop()
 
 
 class DeleteMenu(miru.Select):

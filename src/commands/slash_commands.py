@@ -1,9 +1,13 @@
+import datetime
+from collections import defaultdict
+from datetime import timedelta
+
 import hikari
 import lightbulb
 import miru
 
 from src.database.firebase import is_agreement_channel, has_agreement_roles, db
-from src.commands.modals import SelectMenu, DeleteMenu  # , HubMenu
+from src.commands.modals import SelectMenu, DeleteMenu, HubMenu
 
 plugin = lightbulb.Plugin("slash_plugin")
 
@@ -540,31 +544,90 @@ async def welcome_status(ctx: lightbulb.SlashContext):
     )
 
 
-# @plugin.command()
-# @lightbulb.command(
-#     name="hub",
-#     description="Creates invites for all the servers CoolCat is in!",
-# )
-# @lightbulb.implements(lightbulb.SlashCommand)
-# async def server_hub(ctx: lightbulb.SlashContext):
-#     guilds = plugin.bot.cache.get_available_guilds_view().values()
-#     guild_invites = []
-#     for guild in guilds:
-#         guild_invites.append(plugin.bot.rest.create_invite(await guild.fetch_rules_channel().cr_await))
-#     view = miru.View()
-#     view.add_item(
-#         HubMenu(
-#             options=[miru.SelectOption(label=guild.name) for guild in guilds][::-1],
-#             guilds=guild_invites[::-1],
-#         )
-#     )
-#     message = await ctx.respond(
-#         "Select a server to go to!:",
-#         components=view.build(),
-#         flags=hikari.MessageFlag.EPHEMERAL,
-#     )
-#     await view.start(message)
-#     await view.wait()
+@plugin.command()
+@lightbulb.add_checks(
+    lightbulb.has_guild_permissions(hikari.Permissions.MANAGE_GUILD),
+    lightbulb.checks.guild_only,
+)
+@lightbulb.option(
+    name="status",
+    description="Choose the welcome message status",
+    type=bool,
+    required=True,
+    choices=[True, False],
+)
+@lightbulb.set_help(
+    "Use this command to allow or deny CoolCat's server invite system!",
+    docstring=False,
+)
+@lightbulb.command(
+    name="allow_invites",
+    description="Enables or disabled the server hub feature.",
+)
+@lightbulb.implements(lightbulb.SlashCommand)
+async def welcome_status(ctx: lightbulb.SlashContext):
+    db.child("guilds").child(ctx.guild_id).child("allow_invites").set(
+        ctx.options.status
+    )
+    await ctx.respond(
+        f"{ctx.get_guild().name}'s invite status has been set to [{ctx.options.status}]!",
+        flags=hikari.MessageFlag.EPHEMERAL,
+    )
+
+
+@plugin.command()
+@lightbulb.set_help(
+    "Use this command to go from one server to another!\n"
+    "If you'd like to disable this feature, use the /allow_invites command!",
+    docstring=False,
+)
+@lightbulb.command(
+    name="server_hub",
+    description="Creates invites for all the servers CoolCat is in!",
+)
+@lightbulb.implements(lightbulb.SlashCommand)
+async def server_hub(ctx: lightbulb.SlashContext):
+    guilds = plugin.bot.cache.get_available_guilds_view().values()
+    guild_invites = defaultdict()
+    for guild in guilds:
+        status = (
+            db.child("guilds").child(ctx.guild_id).child("allow_invites").get().val()
+        )
+        if status is None:
+            db.child("guilds").child(ctx.guild_id).child("allow_invites").set(True)
+        elif status is False:
+            guild_invites[str(guild.id)] = None
+            continue
+        channel = guild.system_channel_id
+        if channel is None:
+            channel = guild.rules_channel_id
+        if channel is None:
+            guild_invites[str(guild.id)] = None
+            continue
+        try:
+            invite = await plugin.bot.rest.create_invite(
+                channel, max_uses=1, max_age=timedelta(minutes=5)
+            )
+        except hikari.HikariError:
+            invite = None
+        guild_invites[str(guild.id)] = invite
+    view = miru.View()
+    view.add_item(
+        HubMenu(
+            options=[
+                miru.SelectOption(label=guild.name, value=str(guild.id))
+                for guild in guilds
+            ][::-1],
+            guilds=guild_invites,
+        )
+    )
+    message = await ctx.respond(
+        "Select a server to go to!:",
+        components=view.build(),
+        flags=hikari.MessageFlag.EPHEMERAL,
+    )
+    await view.start(message)
+    await view.wait()
 
 
 @plugin.listener(lightbulb.CommandErrorEvent)
