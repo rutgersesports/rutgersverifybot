@@ -82,7 +82,7 @@ async def message_delete(event: hikari.GuildMessageDeleteEvent):
 
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
-async def welcome_channel_delete(event: hikari.GuildMessageCreateEvent):
+async def agreement_channel_delete(event: hikari.GuildMessageCreateEvent):
     if not event.is_human:
         return
     agreement_channel = (
@@ -102,6 +102,32 @@ async def welcome_channel_delete(event: hikari.GuildMessageCreateEvent):
         == hikari.Permissions.MANAGE_GUILD
     ):
         await event.message.delete()
+
+
+@plugin.listener(hikari.MemberCreateEvent)
+async def welcome_message_send(event: hikari.MemberCreateEvent):
+    status = (
+        fb.db.child("guilds").child(event.guild_id).child("welcome_status").get().val()
+    )
+    if status is None:
+        fb.db.child("guilds").child(event.guild_id).child("welcome_status").set(
+            "Enabled"
+        )
+    elif status == "Disabled":
+        return
+    channel = (
+        fb.db.child("guilds").child(event.guild_id).child("welcome_channel").get().val()
+    )
+    if channel is None:
+        return
+    message = (
+        fb.db.child("guilds").child(event.guild_id).child("welcome_message").get().val()
+    )
+    if message is None:
+        return
+    await plugin.bot.rest.create_message(
+        channel, message.replace("{user}", event.member.mention)
+    )
 
 
 def load(bot: lightbulb.BotApp):
