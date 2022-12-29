@@ -591,10 +591,10 @@ async def server_hub(ctx: lightbulb.SlashContext):
     guild_invites = defaultdict()
     for guild in guilds:
         status = (
-            db.child("guilds").child(ctx.guild_id).child("allow_invites").get().val()
+            db.child("guilds").child(guild.id).child("allow_invites").get().val()
         )
         if status is None:
-            db.child("guilds").child(ctx.guild_id).child("allow_invites").set(True)
+            db.child("guilds").child(guild.id).child("allow_invites").set(True)
         elif status is False:
             guild_invites[str(guild.id)] = None
             continue
