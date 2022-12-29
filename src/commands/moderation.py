@@ -55,10 +55,10 @@ async def message_delete(event: hikari.GuildMessageDeleteEvent):
     if moderation_channel is None:
         return
     if (message := event.old_message) is None:
-        await plugin.bot.rest.create_message(
-            moderation_channel,
-            "A message was deleted, but it was sent too long ago to track",
-        )
+        # await plugin.bot.rest.create_message(
+        #     moderation_channel,
+        #     "A message was deleted, but it was sent too long ago to track",
+        # )
         return
     if message.author.is_bot:
         return
@@ -79,6 +79,29 @@ async def message_delete(event: hikari.GuildMessageDeleteEvent):
     await plugin.bot.rest.create_message(
         moderation_channel, embed=embed, attachments=event.old_message.attachments
     )
+
+
+@plugin.listener(hikari.GuildMessageCreateEvent)
+async def welcome_channel_delete(event: hikari.GuildMessageCreateEvent):
+    if not event.is_human:
+        return
+    agreement_channel = (
+        fb.db.child("guilds")
+        .child(event.guild_id)
+        .child("agreement_channel")
+        .get()
+        .val()
+    )
+    if agreement_channel is None:
+        return
+    if not event.channel_id == agreement_channel:
+        return
+    if (
+        not lightbulb.utils.permissions.permissions_for(event.member)
+        & hikari.Permissions.MANAGE_GUILD
+        == hikari.Permissions.MANAGE_GUILD
+    ):
+        await event.message.delete()
 
 
 def load(bot: lightbulb.BotApp):
