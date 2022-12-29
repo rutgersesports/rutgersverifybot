@@ -28,7 +28,8 @@ async def set_agreement_channel(ctx: lightbulb.SlashContext) -> None:
     )
     if current == ctx.channel_id:
         await ctx.respond(
-            f"{ctx.get_channel().mention} is already the agreement channel."
+            f"{ctx.get_channel().mention} is already the agreement channel.",
+            flags=hikari.MessageFlag.EPHEMERAL,
         )
         return
     db.child("guilds").child(ctx.guild_id).child("agreement_channel").set(
@@ -60,7 +61,8 @@ async def set_moderation_channel(ctx: lightbulb.SlashContext) -> None:
     )
     if current == ctx.channel_id:
         await ctx.respond(
-            f"{ctx.get_channel().mention} is already the moderation channel."
+            f"{ctx.get_channel().mention} is already the moderation channel.",
+            flags=hikari.MessageFlag.EPHEMERAL,
         )
         return
     db.child("guilds").child(ctx.guild_id).child("moderation_channel").set(
