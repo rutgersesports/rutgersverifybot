@@ -1,4 +1,3 @@
-import datetime
 from collections import defaultdict
 from datetime import timedelta
 
@@ -590,9 +589,7 @@ async def server_hub(ctx: lightbulb.SlashContext):
     guilds = plugin.bot.cache.get_available_guilds_view().values()
     guild_invites = defaultdict()
     for guild in guilds:
-        status = (
-            db.child("guilds").child(guild.id).child("allow_invites").get().val()
-        )
+        status = db.child("guilds").child(guild.id).child("allow_invites").get().val()
         if status is None:
             db.child("guilds").child(guild.id).child("allow_invites").set(True)
         elif status is False:
@@ -611,13 +608,23 @@ async def server_hub(ctx: lightbulb.SlashContext):
         except hikari.HikariError:
             invite = None
         guild_invites[str(guild.id)] = invite
+    available_guilds = [
+        guild for guild in guilds if guild_invites[str(guild.id)] is not None
+    ][::-1]
+    if len(available_guilds) is 0:
+        await ctx.respond(
+            "There are no servers to hub to.",
+            components=[],
+            flags=hikari.MessageFlag.EPHEMERAL,
+        )
+        return
     view = miru.View()
     view.add_item(
         HubMenu(
             options=[
                 miru.SelectOption(label=guild.name, value=str(guild.id))
-                for guild in guilds
-            ][::-1],
+                for guild in available_guilds
+            ],
             guilds=guild_invites,
         )
     )
