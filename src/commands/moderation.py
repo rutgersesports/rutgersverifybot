@@ -24,10 +24,11 @@ async def message_edit(event: hikari.GuildMessageUpdateEvent) -> None:
         .get()
         .val()
     )
+    author = (await plugin.bot.rest.fetch_member(event.guild_id, event.author_id))
     embed = (
         hikari.Embed(
             title="Message has been edited by:",
-            description=f"{event.author.mention}\n\n"
+            description=f"{author.mention}\n\n"
             f"**Old message content:**\n{old.content}\n"
             f"\n**New message content:**\n{event.message.content}\n\n"
             f"**In channel:**\n"
@@ -126,7 +127,7 @@ async def welcome_message_send(event: hikari.MemberCreateEvent):
     if message is None:
         return
     await plugin.bot.rest.create_message(
-        channel, message.replace("{user}", event.member.mention)
+        channel, message.replace("{user}", (await plugin.bot.rest.fetch_member(event.guild_id, event.user_id)).mention)
     )
 
 
