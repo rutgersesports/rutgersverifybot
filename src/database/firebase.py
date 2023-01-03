@@ -1,3 +1,4 @@
+import json.encoder
 import random
 from os import getenv
 
@@ -18,6 +19,7 @@ config = {
     "messagingSenderId": getenv("messagingSenderId"),
     "appId": getenv("appId"),
     "measurementId": getenv("measurementId"),
+    "serviceAccount": json.loads(getenv("auth")),
 }
 
 db = pyrebase.initialize_app(config).database()

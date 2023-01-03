@@ -62,11 +62,10 @@ async def message_delete(event: hikari.GuildMessageDeleteEvent):
         return
     if message.author.is_bot:
         return
-    deleter = message.author
     embed = (
         hikari.Embed(
             title="Message has been deleted by:",
-            description=f"{deleter.mention}\n\n"
+            description=f"{event.old_message.author.mention}\n\n"
             f"**Deleted message content:**\n{message.content}\n"
             f"\n**In channel:**\n"
             f"{event.get_channel().mention}",
@@ -126,7 +125,7 @@ async def welcome_message_send(event: hikari.MemberCreateEvent):
     if message is None:
         return
     await plugin.bot.rest.create_message(
-        channel, message.replace("{user}", event.member.mention)
+        channel, message.replace("{user}", event.user.mention)
     )
 
 
