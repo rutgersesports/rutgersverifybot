@@ -24,6 +24,8 @@ async def message_edit(event: hikari.GuildMessageUpdateEvent) -> None:
         .get()
         .val()
     )
+    if moderation_channel is None:
+        return 
     embed = (
         hikari.Embed(
             title="Message has been edited by:",
