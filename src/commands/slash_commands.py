@@ -587,7 +587,7 @@ async def welcome_status(ctx: lightbulb.SlashContext):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def server_hub(ctx: lightbulb.SlashContext):
     guilds = plugin.bot.cache.get_available_guilds_view().values()
-    print([guild for guild in guilds])
+    # print([guild for guild in guilds])
     guild_invites = defaultdict()
     for guild in guilds:
         status = db.child("guilds").child(guild.id).child("allow_invites").get().val()
@@ -619,7 +619,7 @@ async def server_hub(ctx: lightbulb.SlashContext):
             flags=hikari.MessageFlag.EPHEMERAL,
         )
         return
-    print(available_guilds, guild_invites)
+    # print(available_guilds, guild_invites)
     view = miru.View()
     view.add_item(
         HubMenu(

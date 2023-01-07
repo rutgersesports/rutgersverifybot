@@ -72,7 +72,7 @@ async def message_delete(event: hikari.GuildMessageDeleteEvent):
             timestamp=message.timestamp,
             color=0xD9133C,
         )
-        .set_thumbnail(deleter.avatar_url)
+        .set_thumbnail(event.old_message.author.avatar_url)
         .set_footer(text=(me := plugin.bot.get_me()).username, icon=me.avatar_url)
     )
     await plugin.bot.rest.create_message(

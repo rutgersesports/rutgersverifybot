@@ -30,6 +30,6 @@ def run() -> None:
             name="the air guitar championship",
             type=hikari.ActivityType.COMPETING,
         ),
-        asyncio_debug=True,
-        coroutine_tracking_depth=20,
+        # asyncio_debug=True,
+        # coroutine_tracking_depth=20,
     )
