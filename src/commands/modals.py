@@ -25,6 +25,8 @@ class HubMenu(miru.Select):
             await ctx.edit_response(
                 "This server doesn't allow CoolCat to make invites.", components=[]
             )
+        except:
+            await ctx.edit_response("This should never happen", components=[])
         self.view.stop()
 
 
