@@ -19,7 +19,6 @@ bot = lightbulb.BotApp(
 def run() -> None:
     if os.name != "nt":
         import uvloop
-
         uvloop.install()
     bot.load_extensions(
         "src.commands.slash_commands", "src.commands.moderation"

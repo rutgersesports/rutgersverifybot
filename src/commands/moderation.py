@@ -127,7 +127,7 @@ async def welcome_message_send(event: hikari.MemberCreateEvent):
     if message is None:
         return
     await plugin.bot.rest.create_message(
-        channel, message.replace("{user}", event.user.mention)
+        channel, message.replace("{user}", f'<@{event.user_id}>')
     )
 
 
