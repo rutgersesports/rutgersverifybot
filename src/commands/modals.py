@@ -140,7 +140,11 @@ class FirstModal(miru.Modal):
 
     # The callback function is called after the user hits 'Submit'
     async def callback(self, ctx: miru.ModalContext) -> None:
-        if not (self.netid.value.isalnum() and not self.netid.value.isdigit() and not self.netid.value.isalpha()):
+        if not (
+            self.netid.value.isalnum()
+            and not self.netid.value.isdigit()
+            and not self.netid.value.isalpha()
+        ):
             await ctx.edit_response(
                 "Please make sure you're only inputting your NetID!\n"
                 "Make sure to use your NetID, not your RutgersID."
