@@ -29,7 +29,7 @@ async def message_edit(event: hikari.GuildMessageUpdateEvent) -> None:
     embed = (
         hikari.Embed(
             title="Message has been edited by:",
-            description=f"{event.author.mention}\n\n"
+            description=f'<@{event.author_id}>\n\n'
             f"**Old message content:**\n{old.content}\n"
             f"\n**New message content:**\n{event.message.content}\n\n"
             f"**In channel:**\n"
@@ -67,7 +67,7 @@ async def message_delete(event: hikari.GuildMessageDeleteEvent):
     embed = (
         hikari.Embed(
             title="Message has been deleted by:",
-            description=f"{event.old_message.author.mention}\n\n"
+            description=f'<@{event.old_message.author.id}>\n\n'
             f"**Deleted message content:**\n{message.content}\n"
             f"\n**In channel:**\n"
             f"{event.get_channel().mention}",
