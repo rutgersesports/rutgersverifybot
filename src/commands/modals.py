@@ -12,7 +12,7 @@ class HubMenu(miru.Select):
 
     async def callback(self, ctx: miru.Context) -> None:
         try:
-            guild = self.guilds[self.values[0]]
+            guild = self.guilds[int(self.values[0])]
             channel = guild.system_channel_id
             if channel is None:
                 channel = guild.rules_channel_id
@@ -39,7 +39,8 @@ class HubMenu(miru.Select):
             await ctx.edit_response(
                 "This server doesn't allow CoolCat to make invites.", components=[]
             )
-        except:
+        except Exception as e:
+            print(repr(e))
             await ctx.edit_response("This should never happen", components=[])
         self.view.stop()
 
