@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import timedelta
+# from datetime import timedelta
 
 import hikari
 import lightbulb
@@ -588,30 +588,34 @@ async def welcome_status(ctx: lightbulb.SlashContext):
 async def server_hub(ctx: lightbulb.SlashContext):
     guilds = plugin.bot.cache.get_available_guilds_view().values()
     # print([guild for guild in guilds])
-    guild_invites = defaultdict()
+    # guild_invites = defaultdict()
+    available_guilds = defaultdict()
     for guild in guilds:
         status = db.child("guilds").child(guild.id).child("allow_invites").get().val()
         if status is None:
             db.child("guilds").child(guild.id).child("allow_invites").set(True)
-        elif status is False:
-            guild_invites[str(guild.id)] = None
-            continue
-        channel = guild.system_channel_id
-        if channel is None:
-            channel = guild.rules_channel_id
-        if channel is None:
-            guild_invites[str(guild.id)] = None
-            continue
-        try:
-            invite = await plugin.bot.rest.create_invite(
-                channel, max_uses=1, max_age=timedelta(minutes=5)
-            )
-        except hikari.HikariError:
-            invite = None
-        guild_invites[str(guild.id)] = invite
-    available_guilds = [
-        guild for guild in guilds if guild_invites[str(guild.id)] is not None
-    ][::-1]
+            status = True
+        if status:
+            available_guilds[guild.id] = guild
+        # elif status is False:
+        #     guild_invites[guild.id] = None
+        #     continue
+        # channel = guild.system_channel_id
+        # if channel is None:
+        #     channel = guild.rules_channel_id
+        # if channel is None:
+        #     guild_invites[guild.id] = None
+        #     continue
+        # try:
+        #     invite = await plugin.bot.rest.create_invite(
+        #         channel, max_uses=1, max_age=timedelta(minutes=5)
+        #     )
+        # except hikari.HikariError:
+        #     invite = None
+        # guild_invites[guild.id] = invite
+    # available_guilds = [
+    #     guild for guild in guilds if guild_invites[guild.id] is not None
+    # ][::-1]
     if len(available_guilds) is 0:
         await ctx.respond(
             "There are no servers to hub to.",
@@ -624,10 +628,10 @@ async def server_hub(ctx: lightbulb.SlashContext):
     view.add_item(
         HubMenu(
             options=[
-                miru.SelectOption(label=guild.name, value=str(guild.id))
-                for guild in available_guilds
+                miru.SelectOption(label=guild.name, value=str(guild_id))
+                for guild_id, guild in available_guilds.items()
             ],
-            guilds=guild_invites,
+            guilds=available_guilds,
         )
     )
     message = await ctx.respond(

@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import hikari
 import miru
 from src.database import firebase as fb
@@ -10,7 +12,19 @@ class HubMenu(miru.Select):
 
     async def callback(self, ctx: miru.Context) -> None:
         try:
-            invite = self.guilds[self.values[0]]
+            guild = self.guilds[self.values[0]]
+            channel = guild.system_channel_id
+            if channel is None:
+                channel = guild.rules_channel_id
+            if channel is None:
+                invite = None
+            else:
+                try:
+                    invite = await ctx.bot.rest.create_invite(
+                        channel, max_uses=1, max_age=timedelta(minutes=5)
+                    )
+                except hikari.HikariError:
+                    invite = None
             if invite is None:
                 await ctx.edit_response(
                     "This server doesn't allow CoolCat to make invites.", components=[]
