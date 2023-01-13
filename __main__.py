@@ -1,4 +1,4 @@
-from src import bot
+from src.bot import run
 
 # @bot.listen() async def botJoinServer(event: hikari.GuildJoinEvent) -> None: overwrite =
 # hikari.PermissionOverwrite( id=event.guild_id, type=hikari.PermissionOverwriteType.MEMBER,
@@ -9,7 +9,7 @@ from src import bot
 
 
 def main():
-    bot.run()
+    run()
 
 
 if __name__ == "__main__":

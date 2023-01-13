@@ -24,10 +24,13 @@ async def message_edit(event: hikari.GuildMessageUpdateEvent) -> None:
         .get()
         .val()
     )
+    if moderation_channel is None:
+        return
+    user = event.member or plugin.bot.cache.get_member(event.guild_id, event.author_id)
     embed = (
         hikari.Embed(
             title="Message has been edited by:",
-            description=f"{event.author.mention}\n\n"
+            description=f"<@{user.id}>\n\n"
             f"**Old message content:**\n{old.content}\n"
             f"\n**New message content:**\n{event.message.content}\n\n"
             f"**In channel:**\n"
@@ -62,17 +65,20 @@ async def message_delete(event: hikari.GuildMessageDeleteEvent):
         return
     if message.author.is_bot:
         return
+    user = event.old_message.author or plugin.bot.cache.get_member(
+        event.guild_id, event.old_message.author.id
+    )
     embed = (
         hikari.Embed(
             title="Message has been deleted by:",
-            description=f"{event.old_message.author.mention}\n\n"
+            description=f"<@{user.id}>\n\n"
             f"**Deleted message content:**\n{message.content}\n"
             f"\n**In channel:**\n"
             f"{event.get_channel().mention}",
             timestamp=message.timestamp,
             color=0xD9133C,
         )
-        .set_thumbnail(deleter.avatar_url)
+        .set_thumbnail(event.old_message.author.avatar_url)
         .set_footer(text=(me := plugin.bot.get_me()).username, icon=me.avatar_url)
     )
     await plugin.bot.rest.create_message(
@@ -124,8 +130,9 @@ async def welcome_message_send(event: hikari.MemberCreateEvent):
     )
     if message is None:
         return
+    user = event.member or plugin.bot.cache.get_member(event.guild_id, event.user_id)
     await plugin.bot.rest.create_message(
-        channel, message.replace("{user}", event.user.mention)
+        channel, message.replace("{user}", f"<@{user.id}>")
     )
 
 

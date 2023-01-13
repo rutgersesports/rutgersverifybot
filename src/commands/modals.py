@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import hikari
 import miru
 from src.database import firebase as fb
@@ -10,7 +12,19 @@ class HubMenu(miru.Select):
 
     async def callback(self, ctx: miru.Context) -> None:
         try:
-            invite = self.guilds[self.values[0]]
+            guild = self.guilds[int(self.values[0])]
+            channel = guild.system_channel_id
+            if channel is None:
+                channel = guild.rules_channel_id
+            if channel is None:
+                invite = None
+            else:
+                try:
+                    invite = await ctx.bot.rest.create_invite(
+                        channel, max_uses=1, max_age=timedelta(minutes=5)
+                    )
+                except hikari.HikariError:
+                    invite = None
             if invite is None:
                 await ctx.edit_response(
                     "This server doesn't allow CoolCat to make invites.", components=[]
@@ -25,6 +39,9 @@ class HubMenu(miru.Select):
             await ctx.edit_response(
                 "This server doesn't allow CoolCat to make invites.", components=[]
             )
+        except Exception as e:
+            print(repr(e))
+            await ctx.edit_response("This should never happen", components=[])
         self.view.stop()
 
 
@@ -123,9 +140,14 @@ class FirstModal(miru.Modal):
 
     # The callback function is called after the user hits 'Submit'
     async def callback(self, ctx: miru.ModalContext) -> None:
-        if not self.netid.value.isalnum():
+        if not (
+            self.netid.value.isalnum()
+            and not self.netid.value.isdigit()
+            and not self.netid.value.isalpha()
+        ):
             await ctx.edit_response(
-                "Please make sure you're only inputting your NetID!"
+                "Please make sure you're only inputting your NetID!\n"
+                "Make sure to use your NetID, not your RutgersID."
             )
         elif not await fb.test_netid(self.netid.value.casefold()):
             await ctx.edit_response(
