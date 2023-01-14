@@ -111,9 +111,9 @@ async def agreement_channel_delete(event: hikari.GuildMessageCreateEvent):
 
 @plugin.listener(hikari.MemberCreateEvent)
 async def welcome_message_send(event: hikari.MemberCreateEvent):
-    db_guild = fb.db.child('guilds').child(event.guild_id).get().val()
+    db_guild = fb.db.child("guilds").child(event.guild_id).get().val()
     try:
-        status = db_guild['welcome_status']
+        status = db_guild["welcome_status"]
     except KeyError:
         fb.db.child("guilds").child(event.guild_id).child("welcome_status").set(
             "Enabled"
@@ -122,11 +122,11 @@ async def welcome_message_send(event: hikari.MemberCreateEvent):
     if status == "Disabled":
         return
     try:
-        channel = db_guild['welcome_channel']
+        channel = db_guild["welcome_channel"]
     except KeyError:
         return
     try:
-        message = db_guild['welcome_message']
+        message = db_guild["welcome_message"]
     except KeyError:
         return
     if message is None:

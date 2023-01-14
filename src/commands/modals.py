@@ -55,7 +55,7 @@ class DeleteMenu(miru.Select):
             f"{self.values[0]} has been removed from the agreement roles", components=[]
         )
         try:
-            if self.values[0] in self.db_guild['join_roles']:
+            if self.values[0] in self.db_guild["join_roles"]:
                 fb.db.child("guilds").child(ctx.guild_id).child("join_roles").child(
                     self.values[0]
                 ).remove()
@@ -67,7 +67,7 @@ class DeleteMenu(miru.Select):
             self.values[0]
         ).remove()
         try:
-            if self.values[0] in self.db_guild['netid_roles']:
+            if self.values[0] in self.db_guild["netid_roles"]:
                 fb.db.child("guilds").child(ctx.guild_id).child("netid_roles").child(
                     self.values[0]
                 ).remove()
@@ -88,13 +88,15 @@ class SelectMenu(miru.Select):
 
     async def callback(self, ctx: miru.Context) -> None:
         try:
-            if self.values[0] in self.db_guild['guest_roles']:
+            if self.values[0] in self.db_guild["guest_roles"]:
                 await ctx.edit_response(
                     "You have been verified for a guest role! Have a good time!",
                     components=[],
                 )
-                fb.db.child("users").child(ctx.user.id).child("verification").set("guest")
-                roles_to_del = set((all_roles := self.db_guild['all_roles'].values()))
+                fb.db.child("users").child(ctx.user.id).child("verification").set(
+                    "guest"
+                )
+                roles_to_del = set((all_roles := self.db_guild["all_roles"].values()))
                 role_to_add = all_roles.mapping.get(self.values[0])
                 user_roles = set(await ctx.member.fetch_roles())
                 final_roles = [
@@ -108,9 +110,11 @@ class SelectMenu(miru.Select):
         except KeyError:
             pass
         if (
-                netid := fb.db.child("users").child(ctx.user.id).child("netid").get().val()
+            netid := fb.db.child("users").child(ctx.user.id).child("netid").get().val()
         ) is not None:
-            await add_netid_role(ctx, self.values[0], netid, self.db_guild['all_roles'], True)
+            await add_netid_role(
+                ctx, self.values[0], netid, self.db_guild["all_roles"], True
+            )
             self.view.stop()
             await add_join_roles(ctx.bot, ctx.guild_id, ctx.user, self.db_guild)
         else:
@@ -150,9 +154,9 @@ class FirstModal(miru.Modal):
     # The callback function is called after the user hits 'Submit'
     async def callback(self, ctx: miru.ModalContext) -> None:
         if not (
-                self.netid.value.isalnum()
-                and not self.netid.value.isdigit()
-                and not self.netid.value.isalpha()
+            self.netid.value.isalnum()
+            and not self.netid.value.isdigit()
+            and not self.netid.value.isalpha()
         ):
             await ctx.edit_response(
                 "Please make sure you're only inputting your NetID!\n"
@@ -212,9 +216,11 @@ class SecondModal(miru.Modal):
         if not self.ver_code.value.isdigit():
             await ctx.edit_response("Please make sure you're only inputting digits!")
         elif fb.db.child("users").child(ctx.user.id).child(
-                "ver_code"
+            "ver_code"
         ).get().val() == int(self.ver_code.value):
-            await add_netid_role(ctx, self.role, self.netid, self.db_guild['all_roles'], False)
+            await add_netid_role(
+                ctx, self.role, self.netid, self.db_guild["all_roles"], False
+            )
             self.stop()
             await add_join_roles(ctx.bot, ctx.guild_id, ctx.user, self.db_guild)
         else:
@@ -241,9 +247,11 @@ async def add_netid_role(ctx, role: str, netid: str, all_roles_list, exists: boo
     await ctx.member.edit(roles=final_roles)
 
 
-async def add_join_roles(bot: miru.MiruAware, guild_id: int, user: hikari.User, db_guild):
+async def add_join_roles(
+    bot: miru.MiruAware, guild_id: int, user: hikari.User, db_guild
+):
     try:
-        join_roles = db_guild['join_roles']
+        join_roles = db_guild["join_roles"]
     except KeyError:
         return
     if not join_roles:

@@ -114,25 +114,27 @@ async def set_moderation_channel(ctx: lightbulb.SlashContext) -> None:
 )
 @lightbulb.implements(lightbulb.SlashCommand)
 async def set_netid_roles(ctx: lightbulb.SlashContext) -> None:
-    db_guild = db.child('guilds').child(f'{ctx.guild_id}').get().val()
+    db_guild = db.child("guilds").child(f"{ctx.guild_id}").get().val()
     if not db_guild:
         return
     try:
-        agreement_roles = db_guild['all_roles']
+        agreement_roles = db_guild["all_roles"]
     except KeyError:
         agreement_roles = {}
     try:
-        join_roles = db_guild['join_roles']
+        join_roles = db_guild["join_roles"]
     except KeyError:
         join_roles = {}
     possibleRoles = [
         v[1]
         for v in ctx.options.items()
-        if v[1] is not None and v[1].id not in agreement_roles.values() and v[1].id not in join_roles.values()
+        if v[1] is not None
+        and v[1].id not in agreement_roles.values()
+        and v[1].id not in join_roles.values()
     ]
     names = []
     try:
-        netid_roles = db_guild['netid_roles']
+        netid_roles = db_guild["netid_roles"]
     except KeyError:
         netid_roles = {}
     for role in possibleRoles:
@@ -186,25 +188,27 @@ async def set_netid_roles(ctx: lightbulb.SlashContext) -> None:
 )
 @lightbulb.implements(lightbulb.SlashCommand)
 async def set_guest_roles(ctx: lightbulb.SlashContext) -> None:
-    db_guild = db.child('guilds').child(f'{ctx.guild_id}').get().val()
+    db_guild = db.child("guilds").child(f"{ctx.guild_id}").get().val()
     if not db_guild:
         return
     try:
-        agreement_roles = db_guild['all_roles']
+        agreement_roles = db_guild["all_roles"]
     except KeyError:
         agreement_roles = {}
     try:
-        join_roles = db_guild['join_roles']
+        join_roles = db_guild["join_roles"]
     except KeyError:
         join_roles = {}
     possibleRoles = [
         v[1]
         for v in ctx.options.items()
-        if v[1] is not None and v[1].id not in agreement_roles.values() and v[1].id not in join_roles.values()
+        if v[1] is not None
+        and v[1].id not in agreement_roles.values()
+        and v[1].id not in join_roles.values()
     ]
     names = []
     try:
-        guest_roles = db_guild['guest_roles']
+        guest_roles = db_guild["guest_roles"]
     except KeyError:
         guest_roles = {}
     for role in possibleRoles:
@@ -239,19 +243,21 @@ async def set_guest_roles(ctx: lightbulb.SlashContext) -> None:
 @lightbulb.command(name="agree", description="Start the verification process.")
 @lightbulb.implements(lightbulb.SlashCommand)
 async def agree(ctx: lightbulb.SlashContext) -> None:
-    db_guild = db.child('guilds').child(ctx.guild_id).get().val()
+    db_guild = db.child("guilds").child(ctx.guild_id).get().val()
     if not db_guild:
         return
     try:
-        all_roles = db_guild['all_roles']
+        all_roles = db_guild["all_roles"]
     except KeyError:
-        await ctx.respond("This server has not set up their agreement roles. This shouldn't happen. Contact xposea#0001 for help.")
+        await ctx.respond(
+            "This server has not set up their agreement roles. This shouldn't happen. Contact xposea#0001 for help."
+        )
         return
     view = miru.View()
     view.add_item(
         SelectMenu(
             options=[miru.SelectOption(label=k) for k in all_roles.keys()][::-1],
-            db_guild=db_guild
+            db_guild=db_guild,
         )
     )
     message = await ctx.respond(
@@ -278,15 +284,15 @@ async def agree(ctx: lightbulb.SlashContext) -> None:
 )
 @lightbulb.implements(lightbulb.SlashCommand)
 async def delete_agreement_role(ctx: lightbulb.SlashContext) -> None:
-    db_guild = db.child('guilds').child(ctx.guild_id).get().val()
+    db_guild = db.child("guilds").child(ctx.guild_id).get().val()
     if not db_guild:
         return
     try:
-        all_roles = db_guild['all_roles']
+        all_roles = db_guild["all_roles"]
     except KeyError:
         all_roles = {}
     try:
-        join_roles = db_guild['join_roles']
+        join_roles = db_guild["join_roles"]
     except KeyError:
         join_roles = {}
     if not all_roles and not join_roles:
@@ -299,8 +305,7 @@ async def delete_agreement_role(ctx: lightbulb.SlashContext) -> None:
     view = miru.View()
     view.add_item(
         DeleteMenu(
-            options=[miru.SelectOption(label=k) for k in merge][::-1],
-            db_guild=db_guild
+            options=[miru.SelectOption(label=k) for k in merge][::-1], db_guild=db_guild
         )
     )
     message = await ctx.respond(
@@ -346,21 +351,23 @@ async def delete_agreement_role(ctx: lightbulb.SlashContext) -> None:
 )
 @lightbulb.implements(lightbulb.SlashCommand)
 async def set_join_roles(ctx: lightbulb.SlashContext) -> None:
-    db_guild = db.child('guilds').child(f'{ctx.guild_id}').get().val()
+    db_guild = db.child("guilds").child(f"{ctx.guild_id}").get().val()
     if not db_guild:
         return
     try:
-        agreement_roles = db_guild['all_roles']
+        agreement_roles = db_guild["all_roles"]
     except KeyError:
         agreement_roles = {}
     try:
-        join_roles = db_guild['join_roles']
+        join_roles = db_guild["join_roles"]
     except KeyError:
         join_roles = {}
     possibleRoles = [
         v[1]
         for v in ctx.options.items()
-        if v[1] is not None and v[1].id not in agreement_roles.values() and v[1].id not in join_roles.values()
+        if v[1] is not None
+        and v[1].id not in agreement_roles.values()
+        and v[1].id not in join_roles.values()
     ]
     names = []
     for role in possibleRoles:
@@ -471,8 +478,9 @@ async def set_welcome_message(ctx: lightbulb.SlashContext):
     )
     if current is None:
         await ctx.respond(
-            "There is no welcome channel set! Until one is added, no welcome messages will be sent."
-        , flags=hikari.MessageFlag.EPHEMERAL)
+            "There is no welcome channel set! Until one is added, no welcome messages will be sent.",
+            flags=hikari.MessageFlag.EPHEMERAL,
+        )
     db.child("guilds").child(ctx.guild_id).child("welcome_message").set(
         ctx.options.message
     )
@@ -561,7 +569,7 @@ async def welcome_status(ctx: lightbulb.SlashContext):
 async def server_hub(ctx: lightbulb.SlashContext):
     guilds = plugin.bot.cache.get_available_guilds_view().values()
     available_guilds = defaultdict()
-    db_guilds = db.child('guilds').get().val()
+    db_guilds = db.child("guilds").get().val()
     if not db_guilds:
         await ctx.respond(
             "There are no servers to hub to.",
@@ -571,7 +579,7 @@ async def server_hub(ctx: lightbulb.SlashContext):
         return
     for guild in guilds:
         try:
-            status = db_guilds[f'{guild.id}']['allow_invites']
+            status = db_guilds[f"{guild.id}"]["allow_invites"]
         except KeyError:
             db.child("guilds").child(guild.id).child("allow_invites").set(True)
             status = True
