@@ -46,66 +46,75 @@ class HubMenu(miru.Select):
 
 
 class DeleteMenu(miru.Select):
-    def __init__(self, netid_roles, join_roles, *args, **kwargs) -> None:
+    def __init__(self, db_guild, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.netid_roles = netid_roles
-        self.join_roles = join_roles
+        self.db_guild = db_guild
 
     async def callback(self, ctx: miru.Context) -> None:
         await ctx.edit_response(
             f"{self.values[0]} has been removed from the agreement roles", components=[]
         )
-        if self.values[0] in self.join_roles:
-            fb.db.child("guilds").child(ctx.guild_id).child("join_roles").child(
-                self.values[0]
-            ).remove()
-            self.view.stop()
-            return
+        try:
+            if self.values[0] in self.db_guild['join_roles']:
+                fb.db.child("guilds").child(ctx.guild_id).child("join_roles").child(
+                    self.values[0]
+                ).remove()
+                self.view.stop()
+                return
+        except KeyError:
+            pass
         fb.db.child("guilds").child(ctx.guild_id).child("all_roles").child(
             self.values[0]
         ).remove()
-        if self.values[0] in self.netid_roles:
-            fb.db.child("guilds").child(ctx.guild_id).child("netid_roles").child(
-                self.values[0]
-            ).remove()
-        else:
-            fb.db.child("guilds").child(ctx.guild_id).child("guest_roles").child(
-                self.values[0]
-            ).remove()
+        try:
+            if self.values[0] in self.db_guild['netid_roles']:
+                fb.db.child("guilds").child(ctx.guild_id).child("netid_roles").child(
+                    self.values[0]
+                ).remove()
+                self.view.stop()
+                return
+        except KeyError:
+            pass
+        fb.db.child("guilds").child(ctx.guild_id).child("guest_roles").child(
+            self.values[0]
+        ).remove()
         self.view.stop()
 
 
 class SelectMenu(miru.Select):
-    def __init__(self, netid_roles, all_roles_list, *args, **kwargs) -> None:
+    def __init__(self, db_guild, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.netid_roles = netid_roles
-        self.all_roles_list = all_roles_list
+        self.db_guild = db_guild
 
     async def callback(self, ctx: miru.Context) -> None:
-        if self.values[0] not in self.netid_roles:
-            await ctx.edit_response(
-                "You have been verified for a guest role! Have a good time!",
-                components=[],
-            )
-            fb.db.child("users").child(ctx.user.id).child("verification").set("guest")
-            roles_to_del = set((all_roles := self.all_roles_list.values()))
-            role_to_add = all_roles.mapping.get(self.values[0])
-            user_roles = set(await ctx.member.fetch_roles())
-            final_roles = [
-                role.id for role in user_roles if role.id not in roles_to_del
-            ]
-            final_roles.append(role_to_add)
-            await ctx.member.edit(roles=final_roles)
-            self.view.stop()
-            await add_join_roles(ctx.bot, ctx.guild_id, ctx.user)
-        elif (
-            netid := fb.db.child("users").child(ctx.user.id).child("netid").get().val()
+        try:
+            if self.values[0] in self.db_guild['guest_roles']:
+                await ctx.edit_response(
+                    "You have been verified for a guest role! Have a good time!",
+                    components=[],
+                )
+                fb.db.child("users").child(ctx.user.id).child("verification").set("guest")
+                roles_to_del = set((all_roles := self.db_guild['all_roles'].values()))
+                role_to_add = all_roles.mapping.get(self.values[0])
+                user_roles = set(await ctx.member.fetch_roles())
+                final_roles = [
+                    role.id for role in user_roles if role.id not in roles_to_del
+                ]
+                final_roles.append(role_to_add)
+                await ctx.member.edit(roles=final_roles)
+                self.view.stop()
+                await add_join_roles(ctx.bot, ctx.guild_id, ctx.user, self.db_guild)
+                return
+        except KeyError:
+            pass
+        if (
+                netid := fb.db.child("users").child(ctx.user.id).child("netid").get().val()
         ) is not None:
-            await add_netid_role(ctx, self.values[0], netid, self.all_roles_list, True)
+            await add_netid_role(ctx, self.values[0], netid, self.db_guild['all_roles'], True)
             self.view.stop()
-            await add_join_roles(ctx.bot, ctx.guild_id, ctx.user)
+            await add_join_roles(ctx.bot, ctx.guild_id, ctx.user, self.db_guild)
         else:
-            view = ModalView(self.values[0], self.all_roles_list)
+            view = ModalView(self.values[0], self.db_guild)
             message = await ctx.edit_response(
                 "Please verify your Net ID below:",
                 flags=hikari.MessageFlag.EPHEMERAL,
@@ -115,35 +124,35 @@ class SelectMenu(miru.Select):
 
 
 class ModalView(miru.View):
-    def __init__(self, role, all_roles_list, *args, **kwargs):
+    def __init__(self, role, db_guild, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.role = role
-        self.all_roles_list = all_roles_list
+        self.db_guild = db_guild
 
     @miru.button(label="Click me!", style=hikari.ButtonStyle.PRIMARY)
     async def modal_button(self, _: miru.Button, ctx: miru.ViewContext) -> None:
         modal = FirstModal(
             title="NetID verification:",
             role=self.role,
-            all_roles_list=self.all_roles_list,
+            db_guild=self.db_guild,
         )
         await ctx.respond_with_modal(modal)
 
 
 class FirstModal(miru.Modal):
-    def __init__(self, role, all_roles_list, *args, **kwargs):
+    def __init__(self, role, db_guild, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.role = role
-        self.all_roles_list = all_roles_list
+        self.db_guild = db_guild
 
     netid = miru.TextInput(label="NetID", placeholder="Type your NetID!", required=True)
 
     # The callback function is called after the user hits 'Submit'
     async def callback(self, ctx: miru.ModalContext) -> None:
         if not (
-            self.netid.value.isalnum()
-            and not self.netid.value.isdigit()
-            and not self.netid.value.isalpha()
+                self.netid.value.isalnum()
+                and not self.netid.value.isdigit()
+                and not self.netid.value.isalpha()
         ):
             await ctx.edit_response(
                 "Please make sure you're only inputting your NetID!\n"
@@ -157,7 +166,7 @@ class FirstModal(miru.Modal):
             view = VercodeView(
                 role=self.role,
                 netid=self.netid.value.casefold(),
-                all_roles_list=self.all_roles_list,
+                db_guild=self.db_guild,
             )
             message = await ctx.edit_response(
                 "Please check your Rutgers email for the verification code!",
@@ -168,11 +177,11 @@ class FirstModal(miru.Modal):
 
 
 class VercodeView(miru.View):
-    def __init__(self, role, all_roles_list, netid, *args, **kwargs):
+    def __init__(self, role, db_guild, netid, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.role = role
         self.netid = netid
-        self.all_roles_list = all_roles_list
+        self.db_guild = db_guild
 
     @miru.button(label="Click me!", style=hikari.ButtonStyle.PRIMARY)
     async def modal_button(self, _: miru.Button, ctx: miru.ViewContext) -> None:
@@ -180,17 +189,17 @@ class VercodeView(miru.View):
             title="Verification code:",
             role=self.role,
             netid=self.netid,
-            all_roles_list=self.all_roles_list,
+            db_guild=self.db_guild,
         )
         await ctx.respond_with_modal(modal)
 
 
 class SecondModal(miru.Modal):
-    def __init__(self, role, netid, all_roles_list, *args, **kwargs):
+    def __init__(self, role, netid, db_guild, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.role = role
         self.netid = netid
-        self.all_roles_list = all_roles_list
+        self.db_guild = db_guild
 
     ver_code = miru.TextInput(
         label="Verification code",
@@ -203,11 +212,11 @@ class SecondModal(miru.Modal):
         if not self.ver_code.value.isdigit():
             await ctx.edit_response("Please make sure you're only inputting digits!")
         elif fb.db.child("users").child(ctx.user.id).child(
-            "ver_code"
+                "ver_code"
         ).get().val() == int(self.ver_code.value):
-            await add_netid_role(ctx, self.role, self.netid, self.all_roles_list, False)
+            await add_netid_role(ctx, self.role, self.netid, self.db_guild['all_roles'], False)
             self.stop()
-            await add_join_roles(ctx.bot, ctx.guild_id, ctx.user)
+            await add_join_roles(ctx.bot, ctx.guild_id, ctx.user, self.db_guild)
         else:
             await ctx.edit_response(
                 "That is not correct! Please try again, or grab a different role."
@@ -230,17 +239,14 @@ async def add_netid_role(ctx, role: str, netid: str, all_roles_list, exists: boo
     final_roles = [role.id for role in user_roles if role.id not in roles_to_del]
     final_roles.append(role_to_add)
     await ctx.member.edit(roles=final_roles)
-    return
 
 
-async def add_join_roles(bot: miru.MiruAware, guild_id: int, user: hikari.User):
-    if (
-        join_roles := fb.db.child("guilds")
-        .child(guild_id)
-        .child("join_roles")
-        .get()
-        .val()
-    ) is None:
+async def add_join_roles(bot: miru.MiruAware, guild_id: int, user: hikari.User, db_guild):
+    try:
+        join_roles = db_guild['join_roles']
+    except KeyError:
+        return
+    if not join_roles:
         return
     for role in join_roles.values():
         await bot.rest.add_role_to_member(guild_id, user, role)
