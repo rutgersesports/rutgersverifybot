@@ -1,0 +1,34 @@
+# class DeleteMenu(miru.Select):
+#     def __init__(self, db_guild, *args, **kwargs) -> None:
+#         super().__init__(*args, **kwargs)
+#         self.db_guild = db_guild
+#
+#     async def callback(self, ctx: miru.Context) -> None:
+#         await ctx.edit_response(
+#             f"{self.values[0]} has been removed from the agreement roles", components=[]
+#         )
+#         try:
+#             if self.values[0] in self.db_guild["join_roles"]:
+#                 fb.db.child("guilds").child(ctx.guild_id).child("join_roles").child(
+#                     self.values[0]
+#                 ).remove()
+#                 self.view.stop()
+#                 return
+#         except KeyError:
+#             pass
+#         fb.db.child("guilds").child(ctx.guild_id).child("all_roles").child(
+#             self.values[0]
+#         ).remove()
+#         try:
+#             if self.values[0] in self.db_guild["netid_roles"]:
+#                 fb.db.child("guilds").child(ctx.guild_id).child("netid_roles").child(
+#                     self.values[0]
+#                 ).remove()
+#                 self.view.stop()
+#                 return
+#         except KeyError:
+#             pass
+#         fb.db.child("guilds").child(ctx.guild_id).child("guest_roles").child(
+#             self.values[0]
+#         ).remove()
+#         self.view.stop()

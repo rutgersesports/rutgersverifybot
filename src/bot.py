@@ -22,8 +22,9 @@ def run() -> None:
 
         uvloop.install()
     bot.load_extensions(
-        "src.commands.slash_commands", "src.commands.moderation"
-    )  # "commands.prefix_commands",
+        "src.commands.moderation",
+        "src.commands.slash_commands",
+    )
     miru.install(bot)
     bot.run(
         activity=hikari.Activity(
