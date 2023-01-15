@@ -65,12 +65,33 @@ async def message_delete(event: hikari.GuildMessageDeleteEvent):
         return
     if message.author.is_bot:
         return
-    user = event.old_message.author or plugin.bot.cache.get_member(
+    user = event.old_message.member or plugin.bot.cache.get_member(
         event.guild_id, event.old_message.author.id
     )
+    guild = event.get_guild()
+    if not guild:
+        return
+    if guild.owner_id == user.id:
+        return
+    else:
+        guild_roles = guild.get_roles()
+        member_roles = list(
+            filter(lambda r: r.id in user.role_ids, guild_roles.values())
+        )
+        permissions: hikari.Permissions = guild_roles[
+            guild.id
+        ].permissions  # Start with @everyone perms
+
+        for role in member_roles:
+            permissions |= role.permissions
+    if permissions & hikari.Permissions.ADMINISTRATOR:
+        return
+    if permissions & hikari.Permissions.MANAGE_GUILD == hikari.Permissions.MANAGE_GUILD:
+        return
+
     embed = (
         hikari.Embed(
-            title="Message has been deleted by:",
+            title="A message has been deleted! It was written by:",
             description=f"<@{user.id}>\n\n"
             f"**Deleted message content:**\n{message.content}\n"
             f"\n**In channel:**\n"
@@ -111,28 +132,32 @@ async def agreement_channel_delete(event: hikari.GuildMessageCreateEvent):
 
 @plugin.listener(hikari.MemberCreateEvent)
 async def welcome_message_send(event: hikari.MemberCreateEvent):
-    status = (
-        fb.db.child("guilds").child(event.guild_id).child("welcome_status").get().val()
-    )
-    if status is None:
+    db_guild = fb.db.child("guilds").child(event.guild_id).get().val()
+    try:
+        status = db_guild["welcome_status"]
+    except KeyError:
         fb.db.child("guilds").child(event.guild_id).child("welcome_status").set(
             "Enabled"
         )
-    elif status == "Disabled":
+        status = "Enabled"
+    if status == "Disabled":
         return
-    channel = (
-        fb.db.child("guilds").child(event.guild_id).child("welcome_channel").get().val()
-    )
-    if channel is None:
+    try:
+        channel = db_guild["welcome_channel"]
+    except KeyError:
         return
-    message = (
-        fb.db.child("guilds").child(event.guild_id).child("welcome_message").get().val()
-    )
+    try:
+        message = db_guild["welcome_message"]
+    except KeyError:
+        return
     if message is None:
         return
     user = event.member or plugin.bot.cache.get_member(event.guild_id, event.user_id)
     await plugin.bot.rest.create_message(
-        channel, message.replace("{user}", f"<@{user.id}>")
+        channel,
+        message.replace("{user}", f"<@{user.id}>").replace(
+            "{name}", f"{user.display_name}"
+        ),
     )
 
 

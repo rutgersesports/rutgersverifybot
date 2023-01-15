@@ -84,11 +84,7 @@ async def is_agreement_channel(ctx: lightbulb.Context) -> bool:
 
 
 async def has_agreement_roles(ctx: lightbulb.Context) -> bool:
-    if (
-        db.child("guilds").child(ctx.guild_id).child("netid_roles").get().val() is None
-        and db.child("guilds").child(ctx.guild_id).child("guest_roles").get().val()
-        is None
-    ):
+    if db.child("guilds").child(ctx.guild_id).child("all_roles").get().val() is None:
         raise lightbulb.errors.CheckFailure(
             "This server has not set up agreement roles yet."
         )
