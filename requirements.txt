@@ -5,3 +5,4 @@ Pyrebase4==4.6.0
 python-dotenv==0.21.0
 requests==2.28.2
 uvloop==0.17.0
+hikari[speedups]==2.0.0.dev115
