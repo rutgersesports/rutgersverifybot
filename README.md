@@ -6,13 +6,14 @@ This is a Discord bot made for the Rutgers Esports server that supports email ve
 
 ## Dependencies
 ```
-hikari==2.0.0.dev113
-hikari_lightbulb==2.3.1
-hikari_miru==2.0.1
+hikari==2.0.0.dev115
+hikari-lightbulb==2.3.1
+hikari-miru==2.0.4
 Pyrebase4==4.6.0
 python-dotenv==0.21.0
-requests==2.28.1
+requests==2.28.2
 uvloop==0.17.0
+hikari[speedups]==2.0.0.dev115
 ```
 
 ## Contributing
