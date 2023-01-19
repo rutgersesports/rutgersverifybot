@@ -92,6 +92,10 @@ class ModerationMenu(miru.View):
                 label="Set Moderation Channel",
                 description="Set the channel that CoolCat sends chat logs in",
             ),
+            miru.SelectOption(
+                label="Enable/Disable chains",
+                description="Allow CoolCat to count 'chained messages' in chat",
+            )
         ],
     )
     async def moderation_channel(self, select: miru.Select, ctx: miru.Context) -> None:
@@ -104,7 +108,7 @@ class ModerationMenu(miru.View):
                 self.add_item(DisableHubButton(self.author))
                 self.add_item(ModerationMenuButton(self.author))
                 embed.description = (
-                    "Opt out of CoolCat's server hub\nr" r"/ᐠ۪. ̱ . ۪ᐟ\\ﾉ"
+                    "Opt in or out of CoolCat's server hub\nr" r"/ᐠ۪. ̱ . ۪ᐟ\\ﾉ"
                 )
                 await ctx.edit_response(content=None, embed=embed, components=self[1:])
             case "Set Moderation Channel":
@@ -180,6 +184,14 @@ class ModerationMenu(miru.View):
                     components=view.build(),
                 )
                 await view.start(message)
+            case "Enable/Disable chains":
+                self.add_item(EnableChainButton(self.author))
+                self.add_item(DisableChainButton(self.author))
+                self.add_item(ModerationMenuButton(self.author))
+                embed.description = (
+                    "Enable CoolCat's chain counting in chat\nr" r"/ᐠ۪. ̱ . ۪ᐟ\\ﾉ"
+                )
+                await ctx.edit_response(content=None, embed=embed, components=self[1:])
 
 
 class AgreementMenu(miru.View):
@@ -1093,6 +1105,58 @@ class DisableHubButton(miru.Button):
         view = ModerationMenu(self.author, timeout=600)
         message = await ctx.edit_response(
             f"{ctx.get_guild().name} has opted out of CoolCat's server hub",
+            embed=embed,
+            components=view.build(),
+        )
+        await view.start(message)
+
+
+class EnableChainButton(miru.Button):
+    def __init__(self, author):
+        super().__init__(label="Enable", style=hikari.ButtonStyle.SUCCESS)
+        self.author = author
+
+    async def callback(self, ctx: miru.ViewContext) -> None:
+        if ctx.author != self.author:
+            return
+        ctx.bot.guilds[ctx.guild_id]["chains"]["allow_chains"] = True
+        ctx.bot.db.child("guilds").child(ctx.guild_id).child("chains").child("allow_chains").set(True)
+        self.view.stop()
+        view = ModerationMenu(self.author, timeout=600)
+        embed = hikari.Embed(
+            title="CoolCat moderation Configuration",
+            description="Set up your moderation channel and settings here!\n"
+            r"/ᐠ۪. ̱ . ۪ᐟ\\ﾉ",
+            color=0xC06C84,
+        )
+        message = await ctx.edit_response(
+            f"{ctx.get_guild().name} has enabled CoolCat's chain feature",
+            embed=embed,
+            components=view.build(),
+        )
+        await view.start(message)
+
+
+class DisableChainButton(miru.Button):
+    def __init__(self, author):
+        super().__init__(label="Disable", style=hikari.ButtonStyle.DANGER)
+        self.author = author
+
+    async def callback(self, ctx: miru.ViewContext) -> None:
+        if ctx.author != self.author:
+            return
+        ctx.bot.guilds[ctx.guild_id]["chains"]["allow_chains"] = False
+        ctx.bot.db.child("guilds").child(ctx.guild_id).child("chains").child("allow_chains").set(False)
+        self.view.stop()
+        embed = hikari.Embed(
+            title="CoolCat moderation Configuration",
+            description="Set up your moderation channel and settings here!\n"
+            r"/ᐠ۪. ̱ . ۪ᐟ\\ﾉ",
+            color=0xC06C84,
+        )
+        view = ModerationMenu(self.author, timeout=600)
+        message = await ctx.edit_response(
+            f"{ctx.get_guild().name} has disabled CoolCat's chain feature",
             embed=embed,
             components=view.build(),
         )

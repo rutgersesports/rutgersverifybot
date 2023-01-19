@@ -61,15 +61,13 @@ class NewBot(lightbulb.BotApp):
         self.load_extensions(
             "src.commands.moderation",
             "src.commands.slash_commands",
+            "src.commands.chains"
         )
 
     async def on_started(self, _: hikari.StartedEvent) -> None:
-        for guild in self.cache.get_guilds_view():
-            try:
-                self.guilds[guild] = self.db.child('guilds').child(guild).get().val()
-            except KeyError:
-                self.db.child('guilds').child(guild).set({})
-                self.guilds[guild] = {}
-            if not self.guilds[guild]:
-                self.guilds[guild] = {}
+        for guild in await self.rest.fetch_my_guilds():
+            self.guilds[guild.id] = self.db.child('guilds').child(guild.id).get().val()
+            if not self.guilds[guild.id]:
+                self.guilds[guild.id] = {}
+        print(self.guilds)
         self.users = self.db.child('users').get().val()
