@@ -1,6 +1,6 @@
 import hikari
 import lightbulb
-from src.database import firebase as fb
+import src.database.firebase as fb
 
 plugin = lightbulb.Plugin("moderation_plugin")
 plugin.add_checks(
@@ -17,14 +17,11 @@ async def message_edit(event: hikari.GuildMessageUpdateEvent) -> None:
         old = "This message is too old to track. - CoolCat"
     if event.author.is_bot:
         return
-    moderation_channel = (
-        fb.db.child("guilds")
-        .child(event.guild_id)
-        .child("moderation_channel")
-        .get()
-        .val()
-    )
-    if moderation_channel is None:
+    try:
+        moderation_channel = plugin.bot.guilds[event.guild_id]["moderation_channel"]
+    except KeyError:
+        return
+    if not moderation_channel:
         return
     user = event.member or plugin.bot.cache.get_member(event.guild_id, event.author_id)
     embed = (
@@ -48,14 +45,13 @@ async def message_edit(event: hikari.GuildMessageUpdateEvent) -> None:
 
 @plugin.listener(hikari.GuildMessageDeleteEvent)
 async def message_delete(event: hikari.GuildMessageDeleteEvent):
-    moderation_channel = (
-        fb.db.child("guilds")
-        .child(event.guild_id)
-        .child("moderation_channel")
-        .get()
-        .val()
-    )
-    if moderation_channel is None:
+    try:
+        moderation_channel = plugin.bot.guilds[event.guild_id]["moderation_channel"]
+    except KeyError:
+        return
+    except TypeError:
+        return
+    if not moderation_channel:
         return
     if (message := event.old_message) is None:
         # await plugin.bot.rest.create_message(
@@ -111,13 +107,12 @@ async def message_delete(event: hikari.GuildMessageDeleteEvent):
 async def agreement_channel_delete(event: hikari.GuildMessageCreateEvent):
     if not event.is_human:
         return
-    agreement_channel = (
-        fb.db.child("guilds")
-        .child(event.guild_id)
-        .child("agreement_channel")
-        .get()
-        .val()
-    )
+    try:
+        agreement_channel = plugin.bot.guilds[event.guild_id]["agreement_channel"]
+    except KeyError:
+        return
+    except TypeError:
+        return
     if agreement_channel is None:
         return
     if not event.channel_id == agreement_channel:
@@ -132,13 +127,17 @@ async def agreement_channel_delete(event: hikari.GuildMessageCreateEvent):
 
 @plugin.listener(hikari.MemberCreateEvent)
 async def welcome_message_send(event: hikari.MemberCreateEvent):
-    db_guild = fb.db.child("guilds").child(event.guild_id).get().val()
+    try:
+        db_guild = plugin.bot.guilds[event.guild_id]
+    except KeyError:
+        return
     try:
         status = db_guild["welcome_status"]
     except KeyError:
-        fb.db.child("guilds").child(event.guild_id).child("welcome_status").set(
+        plugin.bot.db.child("guilds").child(event.guild_id).child("welcome_status").set(
             "Enabled"
         )
+        db_guild["welcome_status"] = "Enabled"
         status = "Enabled"
     if status == "Disabled":
         return

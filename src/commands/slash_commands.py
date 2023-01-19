@@ -4,7 +4,7 @@ import hikari
 import lightbulb
 import miru
 
-from src.database.firebase import is_agreement_channel, has_agreement_roles, db
+from src.database.firebase import is_agreement_channel, has_agreement_roles
 from src.commands.modals import SelectMenu, HubMenu
 from src.commands.configs import MainMenu
 
@@ -59,7 +59,10 @@ async def config(ctx: lightbulb.SlashContext) -> None:
 @lightbulb.command(name="agree", description="Start the verification process.")
 @lightbulb.implements(lightbulb.SlashCommand)
 async def agree(ctx: lightbulb.SlashContext) -> None:
-    db_guild = db.child("guilds").child(ctx.guild_id).get().val()
+    try:
+        db_guild = plugin.bot.guilds[ctx.guild_id]
+    except KeyError:
+        return
     if not db_guild:
         return
     try:
@@ -135,7 +138,7 @@ async def server_info(ctx: lightbulb.SlashContext):
 async def server_hub(ctx: lightbulb.SlashContext):
     guilds = plugin.bot.cache.get_available_guilds_view().values()
     available_guilds = defaultdict()
-    db_guilds = db.child("guilds").get().val()
+    db_guilds = plugin.bot.guilds
     if not db_guilds:
         await ctx.respond(
             "There are no servers to hub to.",
@@ -145,13 +148,14 @@ async def server_hub(ctx: lightbulb.SlashContext):
         return
     for guild in guilds:
         try:
-            status = db_guilds[f"{guild.id}"]["allow_invites"]
+            status = db_guilds[guild.id]["allow_invites"]
         except KeyError:
-            db.child("guilds").child(guild.id).child("allow_invites").set(True)
+            plugin.bot.db.child("guilds").child(guild.id).child("allow_invites").set(True)
+            plugin.bot.guilds[guild.id]["allow_invites"] = True
             status = True
         if status:
             available_guilds[guild.id] = guild
-    if len(available_guilds) is 0:
+    if len(available_guilds) == 0:
         await ctx.respond(
             "There are no servers to hub to.",
             components=[],

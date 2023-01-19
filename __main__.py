@@ -1,4 +1,4 @@
-from src.bot import run
+from src.bot import NewBot
 
 # @bot.listen() async def botJoinServer(event: hikari.GuildJoinEvent) -> None: overwrite =
 # hikari.PermissionOverwrite( id=event.guild_id, type=hikari.PermissionOverwriteType.MEMBER,
@@ -7,10 +7,6 @@ from src.bot import run
 # permission_overwrites=overwrite) db.db.child('guilds').child(f'{event.guild_id}').child('updates').set(f'{
 # channel.id}') await channel.send("src")
 
-
-def main():
-    run()
-
-
 if __name__ == "__main__":
-    main()
+    bot = NewBot()
+    bot.run()

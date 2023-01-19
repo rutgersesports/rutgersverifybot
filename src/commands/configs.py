@@ -3,7 +3,6 @@ import re
 
 import hikari
 import miru
-from src.database.firebase import db
 from src.commands import menu_commands as mc
 
 
@@ -165,7 +164,8 @@ class ModerationMenu(miru.View):
                     )
                     await view.start(message)
                     return
-                db.child("guilds").child(ctx.guild_id).child("moderation_channel").set(
+                ctx.bot.guilds[ctx.guild_id]["moderation_channel"] = channel.id
+                ctx.bot.db.child("guilds").child(ctx.guild_id).child("moderation_channel").set(
                     channel.id
                 )
                 self.stop()
@@ -228,7 +228,10 @@ class AgreementMenu(miru.View):
         embed = self.message.embeds[0]
         match select.values[0]:
             case "Remove NetID Roles":
-                db_guild = db.child("guilds").child(ctx.guild_id).get().val()
+                try:
+                    db_guild = ctx.bot.guilds[ctx.guild_id]
+                except KeyError:
+                    return
                 if not db_guild:
                     return
                 try:
@@ -265,7 +268,10 @@ class AgreementMenu(miru.View):
                 await view.wait()
 
             case "Remove Guest Roles":
-                db_guild = db.child("guilds").child(ctx.guild_id).get().val()
+                try:
+                    db_guild = ctx.bot.guilds[ctx.guild_id]
+                except KeyError:
+                    return
                 if not db_guild:
                     return
                 try:
@@ -302,7 +308,10 @@ class AgreementMenu(miru.View):
                 await view.wait()
 
             case "Remove Join Roles":
-                db_guild = db.child("guilds").child(ctx.guild_id).get().val()
+                try:
+                    db_guild = ctx.bot.guilds[ctx.guild_id]
+                except KeyError:
+                    return
                 if not db_guild:
                     return
                 try:
@@ -362,7 +371,10 @@ class AgreementMenu(miru.View):
                     return
                 roles = event.message.get_role_mentions()
                 await event.message.delete()
-                db_guild = db.child("guilds").child(f"{ctx.guild_id}").get().val()
+                try:
+                    db_guild = ctx.bot.guilds[ctx.guild_id]
+                except KeyError:
+                    db_guild = {}
                 if not db_guild:
                     db_guild = {}
                 try:
@@ -389,10 +401,12 @@ class AgreementMenu(miru.View):
                     agreement_roles[role.name] = role.id
                     netid_roles[role.name] = role.id
                     names.append(role.mention)
-                db.child("guilds").child(ctx.guild_id).child("netid_roles").set(
+                ctx.bot.guilds[ctx.guild_id]["netid_roles"] = netid_roles
+                ctx.bot.guilds[ctx.guild_id]["all_roles"] = agreement_roles
+                ctx.bot.db.child("guilds").child(ctx.guild_id).child("netid_roles").set(
                     netid_roles
                 )
-                db.child("guilds").child(ctx.guild_id).child("all_roles").set(
+                ctx.bot.db.child("guilds").child(ctx.guild_id).child("all_roles").set(
                     agreement_roles
                 )
                 final = ", ".join(names)
@@ -438,7 +452,10 @@ class AgreementMenu(miru.View):
                     return
                 roles = event.message.get_role_mentions()
                 await event.message.delete()
-                db_guild = db.child("guilds").child(f"{ctx.guild_id}").get().val()
+                try:
+                    db_guild = ctx.bot.guilds[ctx.guild_id]
+                except KeyError:
+                    db_guild = {}
                 if not db_guild:
                     db_guild = {}
                 try:
@@ -465,10 +482,12 @@ class AgreementMenu(miru.View):
                     agreement_roles[role.name] = role.id
                     guest_roles[role.name] = role.id
                     names.append(role.mention)
-                db.child("guilds").child(ctx.guild_id).child("guest_roles").set(
+                    ctx.bot.guilds[ctx.guild_id]["guest_roles"] = guest_roles
+                    ctx.bot.guilds[ctx.guild_id]["all_roles"] = agreement_roles
+                ctx.bot.db.child("guilds").child(ctx.guild_id).child("guest_roles").set(
                     guest_roles
                 )
-                db.child("guilds").child(ctx.guild_id).child("all_roles").set(
+                ctx.bot.db.child("guilds").child(ctx.guild_id).child("all_roles").set(
                     agreement_roles
                 )
                 final = ", ".join(names)
@@ -514,7 +533,10 @@ class AgreementMenu(miru.View):
                     return
                 roles = event.message.get_role_mentions()
                 await event.message.delete()
-                db_guild = db.child("guilds").child(f"{ctx.guild_id}").get().val()
+                try:
+                    db_guild = ctx.bot.guilds[ctx.guild_id]
+                except KeyError:
+                    db_guild = {}
                 if not db_guild:
                     db_guild = {}
                 try:
@@ -536,7 +558,8 @@ class AgreementMenu(miru.View):
                 for role in possibleRoles:
                     join_roles[role.name] = role.id
                     names.append(role.mention)
-                db.child("guilds").child(ctx.guild_id).child("join_roles").set(
+                ctx.bot.guilds[ctx.guild_id]["join_roles"] = join_roles
+                ctx.bot.db.child("guilds").child(ctx.guild_id).child("join_roles").set(
                     join_roles
                 )
                 final = ", ".join(names)
@@ -613,7 +636,8 @@ class AgreementMenu(miru.View):
                     )
                     await view.start(message)
                     return
-                db.child("guilds").child(ctx.guild_id).child("agreement_channel").set(
+                ctx.bot.guilds[ctx.guild_id]["agreement_channel"] = channel.id
+                ctx.bot.db.child("guilds").child(ctx.guild_id).child("agreement_channel").set(
                     channel.id
                 )
                 self.stop()
@@ -787,7 +811,8 @@ class WelcomeMenu(miru.View):
                     )
                     await view.start(message)
                     return
-                db.child("guilds").child(ctx.guild_id).child("welcome_channel").set(
+                ctx.bot.guilds[ctx.guild_id]["welcome_channel"] = channel.id
+                ctx.bot.db.child("guilds").child(ctx.guild_id).child("welcome_channel").set(
                     channel.id
                 )
                 self.stop()
@@ -827,7 +852,8 @@ class WelcomeMenu(miru.View):
                     return
                 except asyncio.TimeoutError:
                     return
-                db.child("guilds").child(ctx.guild_id).child("welcome_message").set(
+                ctx.bot.guilds[ctx.guild_id]["welcome_message"] = event.message.content
+                ctx.bot.db.child("guilds").child(ctx.guild_id).child("welcome_message").set(
                     event.message.content
                 )
                 await event.message.delete()
@@ -977,7 +1003,8 @@ class EnableButton(miru.Button):
     async def callback(self, ctx: miru.ViewContext) -> None:
         if ctx.author != self.author:
             return
-        db.child("guilds").child(ctx.guild_id).child("welcome_status").set("Enabled")
+        ctx.bot.guilds[ctx.guild_id]["welcome_status"] = "Enabled"
+        ctx.bot.db.child("guilds").child(ctx.guild_id).child("welcome_status").set("Enabled")
         self.view.stop()
         view = WelcomeMenu(self.author, timeout=600)
         embed = hikari.Embed(
@@ -1002,7 +1029,8 @@ class DisableButton(miru.Button):
     async def callback(self, ctx: miru.ViewContext) -> None:
         if ctx.author != self.author:
             return
-        db.child("guilds").child(ctx.guild_id).child("welcome_status").set("Disabled")
+        ctx.bot.guilds[ctx.guild_id]["welcome_status"] = "Disabled"
+        ctx.bot.db.child("guilds").child(ctx.guild_id).child("welcome_status").set("Disabled")
         self.view.stop()
         embed = hikari.Embed(
             title="CoolCat Welcome Configuration",
@@ -1027,7 +1055,8 @@ class EnableHubButton(miru.Button):
     async def callback(self, ctx: miru.ViewContext) -> None:
         if ctx.author != self.author:
             return
-        db.child("guilds").child(ctx.guild_id).child("allow_invites").set(True)
+        ctx.bot.guilds[ctx.guild_id]["allow_invites"] = True
+        ctx.bot.db.child("guilds").child(ctx.guild_id).child("allow_invites").set(True)
         self.view.stop()
         view = ModerationMenu(self.author, timeout=600)
         embed = hikari.Embed(
@@ -1052,7 +1081,8 @@ class DisableHubButton(miru.Button):
     async def callback(self, ctx: miru.ViewContext) -> None:
         if ctx.author != self.author:
             return
-        db.child("guilds").child(ctx.guild_id).child("allow_invites").set(False)
+        ctx.bot.guilds[ctx.guild_id]["allow_invites"] = False
+        ctx.bot.db.child("guilds").child(ctx.guild_id).child("allow_invites").set(False)
         self.view.stop()
         embed = hikari.Embed(
             title="CoolCat moderation Configuration",
