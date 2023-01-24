@@ -11,7 +11,6 @@ class NewBot(lightbulb.BotApp):
     def __init__(self) -> None:
         self.guilds = {}
         self.users = {}
-        self.verified = {}
         dotenv.load_dotenv()
         self.db = pyrebase.initialize_app({
             "apiKey": getenv("apiKey"),
