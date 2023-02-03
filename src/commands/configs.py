@@ -95,7 +95,7 @@ class ModerationMenu(miru.View):
             miru.SelectOption(
                 label="Enable/Disable chains",
                 description="Allow CoolCat to count 'chained messages' in chat",
-            )
+            ),
         ],
     )
     async def moderation_channel(self, select: miru.Select, ctx: miru.Context) -> None:
@@ -169,9 +169,9 @@ class ModerationMenu(miru.View):
                     await view.start(message)
                     return
                 ctx.bot.guilds[ctx.guild_id]["moderation_channel"] = channel.id
-                ctx.bot.db.child("guilds").child(ctx.guild_id).child("moderation_channel").set(
-                    channel.id
-                )
+                ctx.bot.db.child("guilds").child(ctx.guild_id).child(
+                    "moderation_channel"
+                ).set(channel.id)
                 self.stop()
                 view = ModerationMenu(self.author, timeout=600)
                 embed.description = (
@@ -649,9 +649,9 @@ class AgreementMenu(miru.View):
                     await view.start(message)
                     return
                 ctx.bot.guilds[ctx.guild_id]["agreement_channel"] = channel.id
-                ctx.bot.db.child("guilds").child(ctx.guild_id).child("agreement_channel").set(
-                    channel.id
-                )
+                ctx.bot.db.child("guilds").child(ctx.guild_id).child(
+                    "agreement_channel"
+                ).set(channel.id)
                 self.stop()
                 view = AgreementMenu(self.author, timeout=600)
                 embed.description = (
@@ -824,9 +824,9 @@ class WelcomeMenu(miru.View):
                     await view.start(message)
                     return
                 ctx.bot.guilds[ctx.guild_id]["welcome_channel"] = channel.id
-                ctx.bot.db.child("guilds").child(ctx.guild_id).child("welcome_channel").set(
-                    channel.id
-                )
+                ctx.bot.db.child("guilds").child(ctx.guild_id).child(
+                    "welcome_channel"
+                ).set(channel.id)
                 self.stop()
                 view = WelcomeMenu(self.author, timeout=600)
                 embed.description = (
@@ -865,9 +865,9 @@ class WelcomeMenu(miru.View):
                 except asyncio.TimeoutError:
                     return
                 ctx.bot.guilds[ctx.guild_id]["welcome_message"] = event.message.content
-                ctx.bot.db.child("guilds").child(ctx.guild_id).child("welcome_message").set(
-                    event.message.content
-                )
+                ctx.bot.db.child("guilds").child(ctx.guild_id).child(
+                    "welcome_message"
+                ).set(event.message.content)
                 await event.message.delete()
                 self.stop()
                 view = WelcomeMenu(self.author, timeout=600)
@@ -1016,7 +1016,9 @@ class EnableButton(miru.Button):
         if ctx.author != self.author:
             return
         ctx.bot.guilds[ctx.guild_id]["welcome_status"] = "Enabled"
-        ctx.bot.db.child("guilds").child(ctx.guild_id).child("welcome_status").set("Enabled")
+        ctx.bot.db.child("guilds").child(ctx.guild_id).child("welcome_status").set(
+            "Enabled"
+        )
         self.view.stop()
         view = WelcomeMenu(self.author, timeout=600)
         embed = hikari.Embed(
@@ -1042,7 +1044,9 @@ class DisableButton(miru.Button):
         if ctx.author != self.author:
             return
         ctx.bot.guilds[ctx.guild_id]["welcome_status"] = "Disabled"
-        ctx.bot.db.child("guilds").child(ctx.guild_id).child("welcome_status").set("Disabled")
+        ctx.bot.db.child("guilds").child(ctx.guild_id).child("welcome_status").set(
+            "Disabled"
+        )
         self.view.stop()
         embed = hikari.Embed(
             title="CoolCat Welcome Configuration",
@@ -1120,7 +1124,9 @@ class EnableChainButton(miru.Button):
         if ctx.author != self.author:
             return
         ctx.bot.guilds[ctx.guild_id]["chains"]["allow_chains"] = True
-        ctx.bot.db.child("guilds").child(ctx.guild_id).child("chains").child("allow_chains").set(True)
+        ctx.bot.db.child("guilds").child(ctx.guild_id).child("chains").child(
+            "allow_chains"
+        ).set(True)
         self.view.stop()
         view = ModerationMenu(self.author, timeout=600)
         embed = hikari.Embed(
@@ -1146,7 +1152,9 @@ class DisableChainButton(miru.Button):
         if ctx.author != self.author:
             return
         ctx.bot.guilds[ctx.guild_id]["chains"]["allow_chains"] = False
-        ctx.bot.db.child("guilds").child(ctx.guild_id).child("chains").child("allow_chains").set(False)
+        ctx.bot.db.child("guilds").child(ctx.guild_id).child("chains").child(
+            "allow_chains"
+        ).set(False)
         self.view.stop()
         embed = hikari.Embed(
             title="CoolCat moderation Configuration",

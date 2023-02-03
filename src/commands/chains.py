@@ -18,16 +18,18 @@ chain_dict = {
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
 async def chains(event: hikari.GuildMessageCreateEvent) -> None:
+    if not event.is_human:
+        return
     try:
         db_chain = plugin.bot.guilds[event.guild_id]["chains"]
     except KeyError:
         plugin.bot.guilds[event.guild_id]["chains"] = {}
         db_chain = plugin.bot.guilds[event.guild_id]["chains"]
     try:
-        allow_chains = db_chain['allow_chains']
+        allow_chains = db_chain["allow_chains"]
     except KeyError:
-        db_chain['allow_chain'] = True
-        allow_chains = True
+        db_chain["allow_chains"] = False
+        allow_chains = False
     if not allow_chains:
         return
     try:
@@ -36,42 +38,48 @@ async def chains(event: hikari.GuildMessageCreateEvent) -> None:
         channel = {}
         db_chain[event.channel_id] = channel
     try:
-        message = channel['message']
+        message = channel["message"]
     except KeyError:
         try:
-            chain_num = len(channel['users'])
+            chain_num = len(channel["users"])
         except KeyError as e:
             chain_num = 1
-        channel['message'] = event.message.content
-        channel['users'] = [event.author_id]
-        plugin.bot.db.child("guilds").child(event.guild_id).child("chains").set(db_chain)
+        channel["message"] = event.message.content
+        channel["users"] = [event.author_id]
+        plugin.bot.db.child("guilds").child(event.guild_id).child("chains").set(
+            db_chain
+        )
         if chain_num > 1:
             await event.message.add_reaction("😾")
         return
     if message != event.message.content:
         try:
-            chain_num = len(channel['users'])
+            chain_num = len(channel["users"])
         except KeyError:
             chain_num = 1
-        channel['message'] = event.message.content
-        channel['users'] = [event.author_id]
-        plugin.bot.db.child("guilds").child(event.guild_id).child("chains").set(db_chain)
+        channel["message"] = event.message.content
+        channel["users"] = [event.author_id]
+        plugin.bot.db.child("guilds").child(event.guild_id).child("chains").set(
+            db_chain
+        )
         if chain_num > 1:
             await event.message.add_reaction("😾")
         return
-    if event.author_id in channel['users']:
+    if event.author_id in channel["users"]:
         try:
-            chain_num = len(channel['users'])
+            chain_num = len(channel["users"])
         except KeyError:
             chain_num = 1
-        channel['message'] = event.message.content
-        channel['users'] = [event.author_id]
-        plugin.bot.db.child("guilds").child(event.guild_id).child("chains").set(db_chain)
+        channel["message"] = event.message.content
+        channel["users"] = [event.author_id]
+        plugin.bot.db.child("guilds").child(event.guild_id).child("chains").set(
+            db_chain
+        )
         if chain_num > 1:
             await event.message.add_reaction("😾")
         return
-    chain_num = len(channel['users'])
-    channel['users'].append(event.author_id)
+    chain_num = len(channel["users"])
+    channel["users"].append(event.author_id)
     plugin.bot.db.child("guilds").child(event.guild_id).child("chains").set(db_chain)
     if chain_num > 100:
         await event.message.add_reaction("💯")

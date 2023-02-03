@@ -3,6 +3,7 @@ from collections import defaultdict
 import hikari
 import lightbulb
 import miru
+import requests
 
 from src.database.firebase import is_agreement_channel, has_agreement_roles
 from src.commands.modals import SelectMenu, HubMenu
@@ -150,7 +151,9 @@ async def server_hub(ctx: lightbulb.SlashContext):
         try:
             status = db_guilds[guild.id]["allow_invites"]
         except KeyError:
-            plugin.bot.db.child("guilds").child(guild.id).child("allow_invites").set(True)
+            plugin.bot.db.child("guilds").child(guild.id).child("allow_invites").set(
+                True
+            )
             plugin.bot.guilds[guild.id]["allow_invites"] = True
             status = True
         if status:
@@ -191,6 +194,8 @@ async def on_error(event: lightbulb.CommandErrorEvent) -> None:
         )
     elif isinstance(event.exception, lightbulb.CheckFailure):
         await event.context.respond(event.exception, flags=hikari.MessageFlag.EPHEMERAL)
+    else:
+        pass
 
 
 # Fun little on ping message
@@ -202,7 +207,21 @@ async def on_ping(event: hikari.GuildMessageCreateEvent):
         return
     if plugin.bot.get_me().mention not in event.content:
         return
-    await event.message.respond(r"meow /ᐠ۪. ̱ . ۪ᐟ\\ﾉ")
+    await event.message.respond(
+        f"meow /ᐠ۪. ̱ . ۪ᐟ\\\\ﾉ",
+        attachment=hikari.Bytes(
+            requests.get(
+                requests.get(
+                    "https://api.thecatapi.com/v1/images/search?format=json&type=jpg"
+                ).json()[0]["url"]
+            ).content,
+            "meow.png",
+        ),
+        # ,
+        # attachment=hikari.Bytes(
+        #     requests.get("https://cataas.com/cat/cute").content, "meow.png"
+        # ),
+    )
 
 
 # Custom help command, needs lots of fine-tuning.

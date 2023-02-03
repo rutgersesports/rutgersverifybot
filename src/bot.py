@@ -12,17 +12,19 @@ class NewBot(lightbulb.BotApp):
         self.guilds = {}
         self.users = {}
         dotenv.load_dotenv()
-        self.db = pyrebase.initialize_app({
-            "apiKey": getenv("apiKey"),
-            "authDomain": getenv("authDomain"),
-            "databaseURL": getenv("databaseURL"),
-            "projectId": getenv("projectId"),
-            "storageBucket": getenv("storageBucket"),
-            "messagingSenderId": getenv("messagingSenderId"),
-            "appId": getenv("appId"),
-            "measurementId": getenv("measurementId"),
-            "serviceAccount": json.loads(getenv("auth")),
-        }).database()
+        self.db = pyrebase.initialize_app(
+            {
+                "apiKey": getenv("apiKey"),
+                "authDomain": getenv("authDomain"),
+                "databaseURL": getenv("databaseURL"),
+                "projectId": getenv("projectId"),
+                "storageBucket": getenv("storageBucket"),
+                "messagingSenderId": getenv("messagingSenderId"),
+                "appId": getenv("appId"),
+                "measurementId": getenv("measurementId"),
+                "serviceAccount": json.loads(getenv("auth")),
+            }
+        ).database()
         super().__init__(
             getenv("token"),
             intents=hikari.Intents.ALL,
@@ -60,13 +62,12 @@ class NewBot(lightbulb.BotApp):
         self.load_extensions(
             "src.commands.moderation",
             "src.commands.slash_commands",
-            "src.commands.chains"
+            "src.commands.chains",
         )
 
     async def on_started(self, _: hikari.StartedEvent) -> None:
         for guild in await self.rest.fetch_my_guilds():
-            self.guilds[guild.id] = self.db.child('guilds').child(guild.id).get().val()
+            self.guilds[guild.id] = self.db.child("guilds").child(guild.id).get().val()
             if not self.guilds[guild.id]:
                 self.guilds[guild.id] = {}
-        print(self.guilds)
-        self.users = self.db.child('users').get().val()
+        self.users = self.db.child("users").get().val()
