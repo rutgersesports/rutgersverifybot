@@ -1123,7 +1123,11 @@ class EnableChainButton(miru.Button):
     async def callback(self, ctx: miru.ViewContext) -> None:
         if ctx.author != self.author:
             return
-        ctx.bot.guilds[ctx.guild_id]["chains"]["allow_chains"] = True
+        try:
+            ctx.bot.guilds[ctx.guild_id]["chains"]["allow_chains"] = True
+        except KeyError:
+            ctx.bot.guilds[ctx.guild_id]["chains"] = {}
+            ctx.bot.guilds[ctx.guild_id]["chains"]["allow_chains"] = True
         ctx.bot.db.child("guilds").child(ctx.guild_id).child("chains").child(
             "allow_chains"
         ).set(True)
@@ -1151,7 +1155,11 @@ class DisableChainButton(miru.Button):
     async def callback(self, ctx: miru.ViewContext) -> None:
         if ctx.author != self.author:
             return
-        ctx.bot.guilds[ctx.guild_id]["chains"]["allow_chains"] = False
+        try:
+            ctx.bot.guilds[ctx.guild_id]["chains"]["allow_chains"] = False
+        except KeyError:
+            ctx.bot.guilds[ctx.guild_id]["chains"] = {}
+            ctx.bot.guilds[ctx.guild_id]["chains"]["allow_chains"] = False
         ctx.bot.db.child("guilds").child(ctx.guild_id).child("chains").child(
             "allow_chains"
         ).set(False)
