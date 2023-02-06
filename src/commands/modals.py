@@ -52,12 +52,17 @@ class SelectMenu(miru.Select):
 
     async def callback(self, ctx: miru.Context) -> None:
         try:
+            user = ctx.bot.users[ctx.user.id]
+        except KeyError:
+            ctx.bot.users[ctx.user.id] = {}
+            user = ctx.bot.users[ctx.user.id]
+        try:
             if self.values[0] in self.db_guild["guest_roles"]:
                 await ctx.edit_response(
                     "You have been verified for a guest role! Have a good time!",
                     components=[],
                 )
-                ctx.bot.users[ctx.user.id]["verification"] = "guest"
+                user["verification"] = "guest"
                 ctx.bot.db.child("users").child(ctx.user.id).child("verification").set(
                     "guest"
                 )
@@ -75,8 +80,17 @@ class SelectMenu(miru.Select):
         except KeyError:
             pass
         try:
-            netid = ctx.bot.users[ctx.user.id]["netid"]
+            netid = user["netid"]
         except KeyError:
+            view = ModalView(self.values[0], self.db_guild)
+            message = await ctx.edit_response(
+                "Please verify your Net ID below:",
+                flags=hikari.MessageFlag.EPHEMERAL,
+                components=view,
+            )
+            await view.start(message)
+            return
+        except TypeError:
             view = ModalView(self.values[0], self.db_guild)
             message = await ctx.edit_response(
                 "Please verify your Net ID below:",

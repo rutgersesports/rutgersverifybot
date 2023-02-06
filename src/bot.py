@@ -11,6 +11,7 @@ class NewBot(lightbulb.BotApp):
     def __init__(self) -> None:
         self.guilds = {}
         self.users = {}
+        self.verified_netids = {}
         dotenv.load_dotenv()
         self.db = pyrebase.initialize_app(
             {
@@ -71,3 +72,8 @@ class NewBot(lightbulb.BotApp):
             if not self.guilds[guild.id]:
                 self.guilds[guild.id] = {}
         self.users = self.db.child("users").get().val()
+        self.verified_netids = self.db.child("verified_netids").get().val()
+        if not self.users:
+            self.users = {}
+        if not self.verified_netids:
+            self.verified_netids = {}

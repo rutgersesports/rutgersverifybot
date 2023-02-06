@@ -83,8 +83,4 @@ async def has_moderation_channel(ctx: lightbulb.Context) -> bool:
 
 
 async def test_netid(bot: NewBot, netid: str) -> bool:
-    try:
-        verified_netids = bot.guilds["verified_netids"]
-    except KeyError:
-        return False
-    return verified_netids is None or netid not in verified_netids.values()
+    return bot.verified_netids is None or netid not in bot.verified_netids.values()

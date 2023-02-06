@@ -227,7 +227,6 @@ async def on_ping(event: hikari.GuildMessageCreateEvent):
 # Custom help command, needs lots of fine-tuning.
 class CustomHelp(lightbulb.BaseHelpCommand):
     async def send_bot_help(self, context):
-        print(self.bot.slash_commands.items())
         commands = "\n".join(self.bot.slash_commands.keys())
         embed = (
             hikari.Embed(
