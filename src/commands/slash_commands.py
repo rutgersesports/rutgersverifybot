@@ -88,6 +88,47 @@ async def agree(ctx: lightbulb.SlashContext) -> None:
     await view.start(message)
     await view.wait()
 
+    @plugin.command()
+    @lightbulb.add_checks(
+        lightbulb.checks.guild_only,
+        lightbulb.Check(has_agreement_roles),
+    )
+    @lightbulb.set_help(
+        "This command will start the verification process for a user! This requires"
+        " any agreement roles!",
+        docstring=False,
+    )
+    @lightbulb.command(name="change_role", description="Start the verification process.")
+    @lightbulb.implements(lightbulb.SlashCommand)
+    async def change_role(ctx: lightbulb.SlashContext) -> None:
+        try:
+            db_guild = plugin.bot.guilds[ctx.guild_id]
+        except KeyError:
+            return
+        if not db_guild:
+            return
+        try:
+            all_roles = db_guild["all_roles"]
+        except KeyError:
+            await ctx.respond(
+                "This server has not set up their agreement roles. This shouldn't happen. Contact xposea#0001 for help."
+            )
+            return
+        view = miru.View()
+        view.add_item(
+            SelectMenu(
+                options=[miru.SelectOption(label=k) for k in all_roles.keys()][::-1],
+                db_guild=db_guild,
+            )
+        )
+        message = await ctx.respond(
+            "Select your role:",
+            components=view.build(),
+            flags=hikari.MessageFlag.EPHEMERAL,
+        )
+        await view.start(message)
+        await view.wait()
+
 
 @plugin.command()
 @lightbulb.option(
