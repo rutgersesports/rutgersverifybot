@@ -1,37 +1,23 @@
-import json.encoder
 import random
 from os import getenv
 
 import lightbulb
-import pyrebase
 from email.message import EmailMessage
 import ssl
 import smtplib
 
 import requests
-
-config = {
-    "apiKey": getenv("apiKey"),
-    "authDomain": getenv("authDomain"),
-    "databaseURL": getenv("databaseURL"),
-    "projectId": getenv("projectId"),
-    "storageBucket": getenv("storageBucket"),
-    "messagingSenderId": getenv("messagingSenderId"),
-    "appId": getenv("appId"),
-    "measurementId": getenv("measurementId"),
-    "serviceAccount": json.loads(getenv("auth")),
-}
-
-db = pyrebase.initialize_app(config).database()
+from src.bot import NewBot
 
 
-async def send_email(netid: str, author_id: int) -> None:
+async def send_email(bot: NewBot, netid: str, author_id: int) -> None:
     # Declare var, FIX NETID/ver_code input parsing
     email_sender = getenv("email")
     email_password = getenv("emailpass")
     email_receiver = netid + "@scarletmail.rutgers.edu"
     ver_code = random.randrange(100000, 999999)
-    db.child("users").child(author_id).child("ver_code").set(ver_code)
+    bot.users[author_id]["ver_code"] = ver_code
+    bot.db.child("users").child(author_id).child("ver_code").set(ver_code)
 
     subject = "Your CoolCat verification code"
 
@@ -64,18 +50,13 @@ async def send_email(netid: str, author_id: int) -> None:
 
 
 async def is_agreement_channel(ctx: lightbulb.Context) -> bool:
-    if (
-        agreement_channel := db.child("guilds")
-        .child(ctx.guild_id)
-        .child("agreement_channel")
-        .get()
-        .val()
-    ) is None:
+    try:
+        agreement_channel = ctx.bot.guilds[ctx.guild_id]["agreement_channel"]
+    except KeyError:
         raise lightbulb.errors.CheckFailure(
             "This server has not set up an agreement channel yet."
         )
-    chan_id = int(ctx.channel_id)
-    if chan_id == agreement_channel:
+    if int(ctx.channel_id) == agreement_channel:
         return True
     else:
         raise lightbulb.errors.CheckFailure(
@@ -84,21 +65,22 @@ async def is_agreement_channel(ctx: lightbulb.Context) -> bool:
 
 
 async def has_agreement_roles(ctx: lightbulb.Context) -> bool:
-    if db.child("guilds").child(ctx.guild_id).child("all_roles").get().val() is None:
+    try:
+        all_roles = ctx.bot.guilds[ctx.guild_id]["all_roles"]
+    except KeyError:
         raise lightbulb.errors.CheckFailure(
             "This server has not set up agreement roles yet."
         )
-    return True
+    return bool(all_roles)
 
 
 async def has_moderation_channel(ctx: lightbulb.Context) -> bool:
-    return (
-        db.child("guilds").child(ctx.guild_id).child("moderation_channel").get().val()
-        is not None
-    )
+    try:
+        moderation_channel = ctx.bot.guilds[ctx.guild_id]["moderation_channel"]
+    except KeyError:
+        return False
+    return bool(moderation_channel)
 
 
-async def test_netid(netid: str) -> bool:
-    return (
-        verified_netids := db.child("verified_netids").get().val()
-    ) is None or netid not in verified_netids.values()
+async def test_netid(bot: NewBot, netid: str) -> bool:
+    return bot.verified_netids is None or netid not in bot.verified_netids.values()

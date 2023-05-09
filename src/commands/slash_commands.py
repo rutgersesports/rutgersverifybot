@@ -3,8 +3,9 @@ from collections import defaultdict
 import hikari
 import lightbulb
 import miru
+import requests
 
-from src.database.firebase import is_agreement_channel, has_agreement_roles, db
+from src.database.firebase import is_agreement_channel, has_agreement_roles
 from src.commands.modals import SelectMenu, HubMenu
 from src.commands.configs import MainMenu
 
@@ -43,6 +44,48 @@ async def config(ctx: lightbulb.SlashContext) -> None:
     message = await ctx.respond(embed, components=view.build())
     await view.start(message)
 
+@plugin.command()
+@lightbulb.add_checks(
+    lightbulb.checks.guild_only,
+    lightbulb.Check(has_agreement_roles),
+)
+@lightbulb.set_help(
+    "This command will restart the verification process for a user! This requires"
+    " any agreement roles!",
+    docstring=False,
+)
+@lightbulb.command(name="change_role", description="Allows the user to change their role.")
+@lightbulb.implements(lightbulb.SlashCommand)
+async def change_role(ctx: lightbulb.SlashContext) -> None:
+    try:
+        db_guild = plugin.bot.guilds[ctx.guild_id]
+    except KeyError:
+        return
+    if not db_guild:
+        return
+    try:
+        all_roles = db_guild["all_roles"]
+    except KeyError:
+        await ctx.respond(
+            "This server has not set up their agreement roles. This shouldn't happen. Contact xposea#0001 for help."
+        )
+        return
+    view = miru.View()
+    view.add_item(
+        SelectMenu(
+            options=[miru.SelectOption(label=k) for k in all_roles.keys()][::-1],
+            db_guild=db_guild,
+        )
+    )
+    message = await ctx.respond(
+        "Select your role:",
+        components=view.build(),
+        flags=hikari.MessageFlag.EPHEMERAL,
+    )
+    await view.start(message)
+    await view.wait()
+
+
 
 @plugin.command()
 @lightbulb.add_checks(
@@ -59,7 +102,10 @@ async def config(ctx: lightbulb.SlashContext) -> None:
 @lightbulb.command(name="agree", description="Start the verification process.")
 @lightbulb.implements(lightbulb.SlashCommand)
 async def agree(ctx: lightbulb.SlashContext) -> None:
-    db_guild = db.child("guilds").child(ctx.guild_id).get().val()
+    try:
+        db_guild = plugin.bot.guilds[ctx.guild_id]
+    except KeyError:
+        return
     if not db_guild:
         return
     try:
@@ -135,7 +181,7 @@ async def server_info(ctx: lightbulb.SlashContext):
 async def server_hub(ctx: lightbulb.SlashContext):
     guilds = plugin.bot.cache.get_available_guilds_view().values()
     available_guilds = defaultdict()
-    db_guilds = db.child("guilds").get().val()
+    db_guilds = plugin.bot.guilds
     if not db_guilds:
         await ctx.respond(
             "There are no servers to hub to.",
@@ -145,13 +191,16 @@ async def server_hub(ctx: lightbulb.SlashContext):
         return
     for guild in guilds:
         try:
-            status = db_guilds[f"{guild.id}"]["allow_invites"]
+            status = db_guilds[guild.id]["allow_invites"]
         except KeyError:
-            db.child("guilds").child(guild.id).child("allow_invites").set(True)
+            plugin.bot.db.child("guilds").child(guild.id).child("allow_invites").set(
+                True
+            )
+            plugin.bot.guilds[guild.id]["allow_invites"] = True
             status = True
         if status:
             available_guilds[guild.id] = guild
-    if len(available_guilds) is 0:
+    if len(available_guilds) == 0:
         await ctx.respond(
             "There are no servers to hub to.",
             components=[],
@@ -187,6 +236,8 @@ async def on_error(event: lightbulb.CommandErrorEvent) -> None:
         )
     elif isinstance(event.exception, lightbulb.CheckFailure):
         await event.context.respond(event.exception, flags=hikari.MessageFlag.EPHEMERAL)
+    else:
+        pass
 
 
 # Fun little on ping message
@@ -198,13 +249,26 @@ async def on_ping(event: hikari.GuildMessageCreateEvent):
         return
     if plugin.bot.get_me().mention not in event.content:
         return
-    await event.message.respond(r"meow /ᐠ۪. ̱ . ۪ᐟ\\ﾉ")
+    await event.message.respond(
+        f"meow /ᐠ۪. ̱ . ۪ᐟ\\\\ﾉ",
+        attachment=hikari.Bytes(
+            requests.get(
+                requests.get(
+                    "https://api.thecatapi.com/v1/images/search?format=json&type=jpg"
+                ).json()[0]["url"]
+            ).content,
+            "meow.png",
+        ),
+        # ,
+        # attachment=hikari.Bytes(
+        #     requests.get("https://cataas.com/cat/cute").content, "meow.png"
+        # ),
+    )
 
 
 # Custom help command, needs lots of fine-tuning.
 class CustomHelp(lightbulb.BaseHelpCommand):
     async def send_bot_help(self, context):
-        print(self.bot.slash_commands.items())
         commands = "\n".join(self.bot.slash_commands.keys())
         embed = (
             hikari.Embed(

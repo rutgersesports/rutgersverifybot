@@ -52,12 +52,18 @@ class SelectMenu(miru.Select):
 
     async def callback(self, ctx: miru.Context) -> None:
         try:
+            user = ctx.bot.users[ctx.user.id]
+        except KeyError:
+            ctx.bot.users[ctx.user.id] = {}
+            user = ctx.bot.users[ctx.user.id]
+        try:
             if self.values[0] in self.db_guild["guest_roles"]:
                 await ctx.edit_response(
                     "You have been verified for a guest role! Have a good time!",
                     components=[],
                 )
-                fb.db.child("users").child(ctx.user.id).child("verification").set(
+                user["verification"] = "guest"
+                ctx.bot.db.child("users").child(ctx.user.id).child("verification").set(
                     "guest"
                 )
                 roles_to_del = set((all_roles := self.db_guild["all_roles"].values()))
@@ -73,15 +79,9 @@ class SelectMenu(miru.Select):
                 return
         except KeyError:
             pass
-        if (
-            netid := fb.db.child("users").child(ctx.user.id).child("netid").get().val()
-        ) is not None:
-            await add_netid_role(
-                ctx, self.values[0], netid, self.db_guild["all_roles"], True
-            )
-            self.view.stop()
-            await add_join_roles(ctx.bot, ctx.guild_id, ctx.user, self.db_guild)
-        else:
+        try:
+            netid = user["netid"]
+        except KeyError:
             view = ModalView(self.values[0], self.db_guild)
             message = await ctx.edit_response(
                 "Please verify your Net ID below:",
@@ -89,6 +89,21 @@ class SelectMenu(miru.Select):
                 components=view,
             )
             await view.start(message)
+            return
+        except TypeError:
+            view = ModalView(self.values[0], self.db_guild)
+            message = await ctx.edit_response(
+                "Please verify your Net ID below:",
+                flags=hikari.MessageFlag.EPHEMERAL,
+                components=view,
+            )
+            await view.start(message)
+            return
+        await add_netid_role(
+            ctx, self.values[0], netid, self.db_guild["all_roles"], True
+        )
+        self.view.stop()
+        await add_join_roles(ctx.bot, ctx.guild_id, ctx.user, self.db_guild)
 
 
 class ModalView(miru.View):
@@ -126,7 +141,7 @@ class FirstModal(miru.Modal):
                 "Please make sure you're only inputting your NetID!\n"
                 "Make sure to use your NetID, not your RutgersID."
             )
-        elif not await fb.test_netid(self.netid.value.casefold()):
+        elif not await fb.test_netid(self.bot, self.netid.value.casefold()):
             await ctx.edit_response(
                 "This NetID has already been verified. Please try again."
             )
@@ -141,7 +156,7 @@ class FirstModal(miru.Modal):
                 components=view,
             )
             await view.start(message)
-            await fb.send_email(self.netid.value, ctx.author.id)
+            await fb.send_email(self.bot, self.netid.value, ctx.author.id)
 
 
 class VercodeView(miru.View):
@@ -179,9 +194,7 @@ class SecondModal(miru.Modal):
     async def callback(self, ctx: miru.ModalContext) -> None:
         if not self.ver_code.value.isdigit():
             await ctx.edit_response("Please make sure you're only inputting digits!")
-        elif fb.db.child("users").child(ctx.user.id).child(
-            "ver_code"
-        ).get().val() == int(self.ver_code.value):
+        elif ctx.bot.users[ctx.user.id]["ver_code"] == int(self.ver_code.value):
             await add_netid_role(
                 ctx, self.role, self.netid, self.db_guild["all_roles"], False
             )
@@ -198,11 +211,13 @@ async def add_netid_role(ctx, role: str, netid: str, all_roles_list, exists: boo
         "You have been verified for a NetID role! Have a good time!",
         components=[],
     )
-    fb.db.child("users").child(ctx.user.id).child("verification").set("netid")
+    ctx.bot.users[ctx.user.id]["verification"] = "netid"
+    ctx.bot.db.child("users").child(ctx.user.id).child("verification").set("netid")
     if netid is not None:
-        fb.db.child("users").child(ctx.user.id).child("netid").set(netid)
+        ctx.bot.users[ctx.user.id]["netid"] = netid
+        ctx.bot.db.child("users").child(ctx.user.id).child("netid").set(netid)
     if not exists:
-        fb.db.child("verified_netids").push(netid)
+        ctx.bot.db.child("verified_netids").push(netid)
     roles_to_del = set((all_roles := all_roles_list.values()))
     role_to_add = all_roles.mapping.get(role)
     user_roles = set(await ctx.member.fetch_roles())
